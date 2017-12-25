@@ -1,5 +1,10 @@
--- Aggregations
-USE AdventureWorks2012 ;
+
+-- Date: Dec 24, 2017
+-- Project Name: Aggregations at T-SQL
+-- Author: Olga Lazarenko
+-- Description: at this home lab project I create queries with aggrgation functions at T-SQL
+
+USE AdventureWorks2012 ; -- call AdventureWorks2012
 
 SELECT TerritoryID
 	, Bonus

@@ -28,3 +28,32 @@ SELECT TerritoryID
 FROM Sales.SalesPerson 
 GROUP BY TerritoryID
 HAVING TerritoryID NOT LIKE 'NULL' ;
+
+ -- Aggregations about sales (TotalSales) at the territories
+SELECT 
+	 Name AS TerritoryName
+	, SUM(SalesYTD) AS TotalSales
+	, SUM(SalesLastYear) AS TotalSalesLastYear
+	,( SUM(SalesYTD) -SUM( SalesLastYear))*100/SUM(SalesLastYear) AS PercentChange
+	--, SUM(CostYTD) AS TotalCost
+	--, SUM(CostLastYear) AS TotalCostLastYear
+FROM Sales.SalesTerritory
+GROUP BY Name 
+ORDER BY TerritoryName ; 
+
+SELECT 
+	 Name AS TerritoryName
+	, SUM(SalesYTD) AS TotalSales
+	, SUM(SalesLastYear) AS TotalSalesLastYear
+	,( SUM(SalesYTD) -SUM( SalesLastYear))*100/SUM(SalesLastYear) AS PercentChange
+	--, SUM(CostYTD) AS TotalCost
+	--, SUM(CostLastYear) AS TotalCostLastYear
+FROM Sales.SalesTerritory
+WHERE
+	CASE
+		WHEN ( SUM(SalesYTD) -SUM( SalesLastYear))> 0 THEN 'Gain'
+		WHEN ( SUM(SalesYTD) -SUM( SalesLastYear)) < 0 THEN 'Loss'
+		ELSE 'no changes'
+	END = 'Changes'		
+GROUP BY Name 
+ORDER BY TerritoryName ; 

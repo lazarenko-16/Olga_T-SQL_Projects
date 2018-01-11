@@ -4,6 +4,8 @@
 -- Description: at this home lab project I create inner joins to retriev data from AdventureWorks2012 DB
 
 USE AdventureWorks2012 ; -- call the database
+GO
+
 
 SELECT ProductCategoryID
 	, Name
@@ -263,4 +265,125 @@ and OrdersTotal is SUM(SubTotal)
 the following aggregates are grouped by CustomerID
 */
 
+SELECT SalesOrderID
+	, SalesOrderNumber
+	, CustomerID
+	, SubTotal
+FROM Sales.SalesOrderHeader ; 
+--returned 31465 rows
+
+SELECT 
+	 CustomerID
+	, SUM(SubTotal) AS OrdersTotal
+FROM Sales.SalesOrderHeader 
+GROUP BY CustomerID 
+ORDER BY CustomerID ; 
+-- returned 19119 rows, it means 19119 customers made orders
+
+--create inner join between tables Person.Person  and Sales.Customer;
+-- after this create inner join with this derived table and table Sales.SalesOrderHeader
+
+SELECT C.CustomerID
+	--, P.FirstName
+	--, P.LastName
+	, SUM(SubTotal) AS OrdersTotal
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID 
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+GROUP BY C.CustomerID ; 
+-- retured 19119 rows
+ 
+
+SELECT C.CustomerID
+	, (P.LastName + ' ' + P.FirstName) AS CustomerName
+	, COUNT(SalesOrderNumber) As Orders
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID 
+GROUP BY C.CustomerID ,(P.LastName + ' ' + P.FirstName)
+ORDER BY CustomerName ; 
+-- returned 19119 rows
+
+
+-- we can find 10 top customers with max spendings(Total)
+SELECT TOP 10
+	C.CustomerID
+	, SUM(SubTotal) AS OrdersTotal
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID 
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+GROUP BY C.CustomerID
+ORDER BY OrdersTotal DESC ; -- returned 10 rows
+
+-- when we create joins we also can use HAVING clause to filer the data
+-- for example we retriev the data CustomerID/CustomerName/OrdersTotal with OrdersTotal>500000
+SELECT C.CustomerID
+	, SUM(SubTotal) AS OrdersTotal
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID 
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+GROUP BY C.CustomerID
+HAVING SUM(SubTotal) > 500000
+ORDER BY OrdersTotal DESC ; 
+
+
+--#6
+-- we well add the territory name 
+SELECT C.CustomerID
+	, (P.LastName + ' ' + P.FirstName) AS CustomerName
+	, SUM(SubTotal) AS OrdersTotal
+	, T.Name AS TerritoryName
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID
+	INNER JOIN AdventureWorks2012.Sales.SalesTerritory AS T
+		ON C.TerritoryID = T.TerritoryID 
+GROUP BY C.CustomerID ,(P.LastName + ' ' + P.FirstName),T.Name -- notice we have to group on each joined table
+ORDER BY OrdersTotal DESC ; 
+--returned 19119 rows
+
+
+-- and if we want to filter only for a specific territory ( for example Canada)
+SELECT C.CustomerID
+	, (P.LastName + ' ' + P.FirstName) AS CustomerName
+	, SUM(SubTotal) AS OrdersTotal
+	, T.Name AS TerritoryName
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID
+	INNER JOIN AdventureWorks2012.Sales.SalesTerritory AS T
+		ON C.TerritoryID = T.TerritoryID 
+GROUP BY C.CustomerID ,(P.LastName + ' ' + P.FirstName),T.Name -- notice we have to group on each joined table
+HAVING T.Name = 'Canada'
+ORDER BY OrdersTotal DESC ;
+--got 1677 rows
+
+-- now we use a wildcard for HAVING clause
+SELECT C.CustomerID
+	, (P.LastName + ' ' + P.FirstName) AS CustomerName
+	, SUM(SubTotal) AS OrdersTotal
+	, T.Name AS TerritoryName
+FROM AdventureWorks2012.Sales.Customer AS C
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+	INNER JOIN AdventureWorks2012.Person.Person AS P
+		ON C.PersonID = P.BusinessEntityID
+	INNER JOIN AdventureWorks2012.Sales.SalesTerritory AS T
+		ON C.TerritoryID = T.TerritoryID 
+GROUP BY C.CustomerID ,(P.LastName + ' ' + P.FirstName),T.Name -- notice we have to group on each joined table
+HAVING T.Name LIKE '%west'
+ORDER BY OrdersTotal DESC ;
+--returned 7993 rows
 

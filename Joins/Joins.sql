@@ -387,3 +387,70 @@ HAVING T.Name LIKE '%west'
 ORDER BY OrdersTotal DESC ;
 --returned 7993 rows
 
+--#7
+/* get data TerritoryID|TerritoryName|TotalSale|Orders
+joining tables Sales.SalesTerritory, Sales.SalesOrderNumber on TerritoryID
+ where TotalSale = SUM(SalesYTD) and Orders = COUNT(SalesOrderNumber)
+ */
+ SELECT  T.Name AS TerritoryName
+	, T.TerritoryID 
+	, SUM(SalesYTD) AS TotalSale
+	, COUNT(SalesOrderNumber) AS Orders
+ FROM AdventureWorks2012.Sales.SalesTerritory AS T
+	INNER JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON T.TerritoryID = O.TerritoryID 
+ GROUP BY T.TerritoryID, T.Name 
+ ORDER BY TerritoryName ;
+
+ --#8
+ /* get customers that didn't places orders using LEFT JOIN
+ from tables Sales.Customer, Sales.SalesOrdersHeader
+ it will be CustomerID|SalesOrderNumber (NULL)
+ */
+ SELECT C.CustomerID
+	, (P.FirstName + ' '+ P.LastName) AS CustomerName
+	, O.OrderDate
+	, O.SalesOrderNumber
+ FROM AdventureWorks2012.Sales.Customer AS C
+	LEFT JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+	INNER JOIN AdventureWorks2012.Person.Person AS P 
+	--we want to have the names of the customers that didn't places orders
+		ON C.CustomerID = P.BusinessEntityID 
+ WHERE O.SalesOrderNumber IS NULL 
+ ORDER BY C.CustomerID;  
+ --496 rows are returned
+
+ -- actually we can omit the columns OrderData and SalesOrderNumber 
+ -- I will just comment them 
+  SELECT C.CustomerID
+	, (P.FirstName + ' '+ P.LastName) AS CustomerName
+	--, O.OrderDate
+	--, O.SalesOrderNumber
+ FROM AdventureWorks2012.Sales.Customer AS C
+	LEFT JOIN AdventureWorks2012.Sales.SalesOrderHeader AS O
+		ON C.CustomerID = O.CustomerID 
+	INNER JOIN AdventureWorks2012.Person.Person AS P 
+	--we want to have the names of the customers that didn't places orders
+		ON C.CustomerID = P.BusinessEntityID 
+ WHERE O.SalesOrderNumber IS NULL 
+ ORDER BY C.CustomerID;
+ --496 rows are returned 
+
+ --#9
+ /* to get the data
+CustomerID|OrderDate|SalesOrderNumber|SalesPersonID
+  where SalesPersonID is not available(null)
+ orders with no information of sales person
+ */
+
+ SELECT C.PersonID 
+	, O.OrderDate
+	, O.SalesOrderNumber
+	--, O.SalesPersonID 
+ FROM AdventureWorks2012.Sales.Customer AS C
+	RIGHT JOIN AdventureWorks2012.Sales.SalesOrderHeader As O
+		ON C.CustomerID = O.CustomerID 
+ WHERE O.SalesPersonID IS NULL ; 
+
+

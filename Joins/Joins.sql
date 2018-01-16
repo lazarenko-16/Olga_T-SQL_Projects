@@ -454,3 +454,102 @@ CustomerID|OrderDate|SalesOrderNumber|SalesPersonID
  WHERE O.SalesPersonID IS NULL ; 
 
 
+ -- self joins
+ -- retrieve the list of the employees hired at the same date
+ -- table HumanResources.Employee will be join on itseft
+ SELECT T1.BusinessEntityID
+	, T1.JobTitle
+	, T1.HireDate
+	, T2.BusinessEntityID
+	, T2.JobTitle
+ FROM AdventureWorks2012.HumanResources.Employee AS T1
+	INNER JOIN AdventureWorks2012.HumanResources.Employee AS T2
+		ON T1.HireDate  = T2.HireDate
+		AND T1.BusinessEntityID < T2.BusinessEntityID ; 
+-- 210 rows returned
+
+
+
+-- if we want to retrieve the list of employees with the same vacational hours
+ SELECT T1.BusinessEntityID
+	, T1.JobTitle
+	, T1.VacationHours
+	, T2.BusinessEntityID
+	, T2.JobTitle
+ FROM AdventureWorks2012.HumanResources.Employee AS T1
+	INNER JOIN AdventureWorks2012.HumanResources.Employee AS T2
+		ON T1.VacationHours  = T2.VacationHours
+		AND T1.BusinessEntityID < T2.BusinessEntityID ; 
+--281 rows returned
+
+--if we want to include the employees names:
+ SELECT T1.BusinessEntityID
+	, T1.JobTitle
+	--, P1.FirstName
+	--, P1.LastName
+	, (P1.FirstName + ' '+ P1.LastName) AS Emp1_Name
+	, T1.VacationHours
+	, T2.BusinessEntityID
+	, T2.JobTitle
+	, (P2.FirstName + ' '+ P2.LastName) AS Emp2_Name
+
+ FROM ( AdventureWorks2012.HumanResources.Employee AS T1
+		INNER JOIN AdventureWorks2012.Person.Person AS P1
+			ON T1.BusinessEntityID = P1.BusinessEntityID )
+	INNER JOIN 
+		( AdventureWorks2012.HumanResources.Employee AS T2
+			INNER JOIN AdventureWorks2012.Person.Person AS P2
+				ON T2.BusinessEntityID = P2.BusinessEntityID) 
+
+		ON T1.VacationHours  = T2.VacationHours
+		AND T1.BusinessEntityID < T2.BusinessEntityID 
+ ORDER BY T1.VacationHours DESC ;
+
+
+
+   --retrieve data about sales persons with the same bonus amount
+  -- self join on table Sales.SalesPerson
+  SELECT SP1.BusinessEntityID AS SalesPerson1_ID
+	, SP1.Bonus
+	, SP2.BusinessEntityID AS SalesPerson2_ID
+  FROM AdventureWorks2012.Sales.SalesPerson AS SP1
+	INNER JOIN AdventureWorks2012.Sales.SalesPerson AS SP2 
+		ON SP1.Bonus = SP2.Bonus
+			AND SP1.BusinessEntityID < SP2.BusinessEntityID 
+			AND SP1.Bonus <> 0; -- ignore the rows with bonus equals zero 
+
+-- and as well to have their names
+
+  SELECT SP1.BusinessEntityID AS SalesPerson1_ID
+	, (P1.FirstName + ' ' + P1.LastName) AS SalesPerson1_Name
+	, SP1.Bonus
+	, SP2.BusinessEntityID AS SalesPerson2_ID
+	, (P2.FirstName + ' ' + P2.LastName) AS SalesPerson2_Name
+  FROM ( AdventureWorks2012.Sales.SalesPerson AS SP1
+			INNER JOIN AdventureWorks2012.Person.Person AS P1
+			ON SP1.BusinessEntityID = P1.BusinessEntityID ) 
+	INNER JOIN 
+		( AdventureWorks2012.Sales.SalesPerson AS SP2
+			INNER JOIN AdventureWorks2012.Person.Person AS P2
+			ON SP2.BusinessEntityID = P2.BusinessEntityID )
+	ON SP1.Bonus = SP2.Bonus
+			AND SP1.BusinessEntityID < SP2.BusinessEntityID 
+			AND SP1.Bonus <> 0; -- ignore the rows with bonus equals zero 
+
+
+-- Sales persons with the same sales quota > 250000 
+ SELECT SP1.BusinessEntityID AS SalesPerson1_ID
+	, (P1.FirstName + ' ' + P1.LastName) AS SalesPerson1_Name
+	, SP1.SalesQuota
+	, SP2.BusinessEntityID AS SalesPerson2_ID
+	, (P2.FirstName + ' ' + P2.LastName) AS SalesPerson2_Name
+  FROM ( AdventureWorks2012.Sales.SalesPerson AS SP1
+			INNER JOIN AdventureWorks2012.Person.Person AS P1
+			ON SP1.BusinessEntityID = P1.BusinessEntityID ) 
+	INNER JOIN 
+		( AdventureWorks2012.Sales.SalesPerson AS SP2
+			INNER JOIN AdventureWorks2012.Person.Person AS P2
+			ON SP2.BusinessEntityID = P2.BusinessEntityID )
+	ON SP1.SalesQuota = SP2.SalesQuota
+			AND SP1.BusinessEntityID < SP2.BusinessEntityID 
+			AND SP1.SalesQuota > 250000;  -- ignore the rows with bonus equals zero 

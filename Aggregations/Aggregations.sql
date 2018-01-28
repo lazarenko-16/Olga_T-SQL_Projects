@@ -3,8 +3,11 @@
 -- Project Name: Aggregations at T-SQL
 -- Author: Olga Lazarenko
 -- Description: at this home lab project I create queries with aggrgation functions at T-SQL
+--              with MIN, MAX, COUNT, COUNT(*), AVG functions
 
 USE AdventureWorks2012 ; -- call AdventureWorks2012
+GO
+
 
 SELECT TerritoryID
 	, Bonus
@@ -57,3 +60,63 @@ WHERE
 	END = 'Changes'		
 GROUP BY Name 
 ORDER BY TerritoryName ; 
+
+
+--************************************************************************************
+
+SELECT COUNT(S.CountryRegionCode) AS Persons
+	, S.CountryRegionCode AS 'CountryCode'
+	, C.Name AS CountryName
+FROM AdventureWorks2012.Person.StateProvince AS S
+	INNER JOIN
+	AdventureWorks2012.Person.CountryRegion AS C
+	ON S.CountryRegionCode = C.CountryRegionCode
+GROUP BY S.CountryRegionCode
+	, C.Name
+ORDER BY S.CountryRegionCode ; 
+/*
+the query gives us the number of persons/employees from each country
+inner join is used to return the country's name, 
+the data is groped by the country's code and name
+we needed to group by C.Name , because it is mentioned at SELECT clause 
+*/
+
+
+SELECT TerritoryID -- retrieve the territory ID and name with the max sales
+	, Name AS TerritoryName
+	, SalesYTD AS Sales
+	, 'MAX' AS Estimation
+FROM AdventureWorks2012.Sales.SalesTerritory 
+WHERE SalesYTD = (SELECT MAX(SalesYTD) 
+		FROM AdventureWorks2012.Sales.SalesTerritory ) ; 
+
+/* 
+Now we will make the query more complicated, 
+we want to have the territory with min sale
+*/
+SELECT TerritoryID -- retrieve the territory ID and name with the min sales
+	, Name AS TerritoryName
+	, SalesYTD AS Sales
+	, 'MIN' AS Estimation
+FROM AdventureWorks2012.Sales.SalesTerritory 
+WHERE SalesYTD = (SELECT MIN(SalesYTD) 
+		FROM AdventureWorks2012.Sales.SalesTerritory )  ;
+
+-- and combine the results with UNION
+SELECT TerritoryID -- retrieve the territory ID and name with the max sales
+	, Name AS TerritoryName
+	, SalesYTD AS Sales
+	, 'MAX' AS Estimation
+FROM AdventureWorks2012.Sales.SalesTerritory 
+WHERE SalesYTD = (SELECT MAX(SalesYTD) 
+		FROM AdventureWorks2012.Sales.SalesTerritory )
+UNION
+SELECT TerritoryID -- retrieve the territory ID and name with the max sales
+	, Name AS TerritoryName
+	, SalesYTD AS Sales
+	, 'MIN' AS Estimation
+FROM AdventureWorks2012.Sales.SalesTerritory 
+WHERE SalesYTD = (SELECT MIN(SalesYTD) 
+		FROM AdventureWorks2012.Sales.SalesTerritory ) 
+ORDER BY Sales ; 
+

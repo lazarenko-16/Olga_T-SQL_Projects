@@ -49,3 +49,13 @@ SELECT BusinessEntityID
 	, ModifiedDate
 FROM Person.Person ; 
 
+--REPLACE(), SUBSTRING() functions ************************************
+  SELECT SalesOrderID
+	, SalesOrderNumber
+	, PurchaseOrderNumber
+	, AccountNumber
+	, REPLACE(SalesOrderNumber,'SO','') AS New_OrderNumber
+	, REPLACE(PurchaseOrderNumber,'PO','') AS New_PurchaseNumber
+	, SUBSTRING(AccountNumber,4,LEN(AccountNumber)) AS New_AccountNumber
+  FROM AdventureWorks2012.Sales.SalesOrderHeader ;
+

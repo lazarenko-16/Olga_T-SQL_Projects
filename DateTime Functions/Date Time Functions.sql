@@ -66,3 +66,14 @@ INNER JOIN
 	HumanResources.Employee AS E
 	ON P.BusinessEntityID = E.BusinessEntityID 
 ORDER BY EmploymentYears desc; 
+
+--****************************************************************
+-- Calculate how many days/weeks were nessessary to deliver the orders
+  SELECT SalesOrderID
+	, OrderDate
+	, DueDate
+	, ShipDate
+	, DATEDIFF(dd,OrderDate, DueDate) AS TotalOrderDays
+	, DATEDIFF(dd, OrderDate,ShipDate) AS ShippingDays
+	, DATEDIFF(wk,OrderDate, ShipDate) AS ShippingWeeks
+  FROM AdventureWorks2012.Sales.SalesOrderHeader ;

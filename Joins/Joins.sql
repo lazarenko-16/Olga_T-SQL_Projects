@@ -552,4 +552,26 @@ CustomerID|OrderDate|SalesOrderNumber|SalesPersonID
 			ON SP2.BusinessEntityID = P2.BusinessEntityID )
 	ON SP1.SalesQuota = SP2.SalesQuota
 			AND SP1.BusinessEntityID < SP2.BusinessEntityID 
-			AND SP1.SalesQuota > 250000;  -- ignore the rows with bonus equals zero 
+			AND SP1.SalesQuota > 250000;  -- ignore the rows with the bonus equals zero 
+
+--************************************************************************************************
+-- to display the sales for countries
+-- two inner joins:
+
+SELECT S.CountryRegionCode AS CountryCode
+	, R.Name AS CountryName
+	, SUM(T.SalesYTD) AS Sales
+	, SUM(T.SalesLastYear) AS SalesLastYear
+	, ( SUM(T.SalesYTD) - SUM(T.SalesLastYear)) AS Change
+FROM AdventureWorks2012.Person.StateProvince AS S
+	INNER JOIN 
+	AdventureWorks2012.Sales.SalesTerritory AS T
+	ON
+	S.TerritoryID = T.TerritoryID 
+	INNER JOIN
+	AdventureWorks2012.Person.CountryRegion AS R
+	ON
+	S.CountryRegionCode = R.CountryRegionCode 
+GROUP BY S.CountryRegionCode, R.Name
+ORDER BY CountryCode ; 
+

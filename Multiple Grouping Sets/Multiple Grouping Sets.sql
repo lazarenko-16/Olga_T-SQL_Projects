@@ -134,3 +134,47 @@ FROM AdventureWorks2012.HumanResources.EmployeeDepartmentHistory ;
 	Region
 	, CountryCode
 	, CardType ; -- returns 34 rows 
+
+	--**************************************************************
+USE AdventureWorks2012 ; 
+GO
+
+SELECT 
+	D.DepartmentID
+	, D.ShiftID
+	, S.Name AS ShiftName
+	, COUNT(BusinessEntityID) AS Employees
+FROM AdventureWorks2012.HumanResources.EmployeeDepartmentHistory AS D
+	INNER JOIN
+	AdventureWorks2012.HumanResources.Shift AS S
+	ON D.ShiftID = S.ShiftID 
+GROUP BY
+	 D.DepartmentID
+	 , D.ShiftID
+	 , S.Name 
+ORDER BY 
+	D.DepartmentID
+	, D.SHiftID ; 
+
+
+SELECT 
+	--DH.DepartmentID
+	 D.Name AS Department
+	, S.Name AS ShiftName
+	, COUNT(BusinessEntityID) AS Employees
+FROM AdventureWorks2012.HumanResources.EmployeeDepartmentHistory AS DH
+	INNER JOIN
+	AdventureWorks2012.HumanResources.Shift AS S
+	ON DH.ShiftID = S.ShiftID 
+	INNER JOIN
+	AdventureWorks2012.HumanResources.Department AS D
+	ON D.DepartmentID = DH.DepartmentID 
+WHERE DH.DepartmentID BETWEEN 7 AND 9
+GROUP BY
+	 --DH.DepartmentID
+	  D.Name 
+	 , S.Name
+WITH ROLLUP
+ORDER BY 
+	D.Name DESC 
+	 ; 

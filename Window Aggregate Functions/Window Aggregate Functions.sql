@@ -24,7 +24,7 @@ will be used at this project to create queries
 -- the difference is that they are applied to a window of rows defined by the OVER clause
 
 
--- OVER(  PARTITION BY ... )  *****************************************************************************
+-- OVER(PARTITION BY ... )  *****************************************************************************
 SELECT 
 	DaysToManufacture
 	, ProductID
@@ -79,3 +79,107 @@ FROM AdventureWorks2012.Purchasing.PurchaseOrderDetail AS O
 	ON O.ProductID = P.ProductID
 WHERE Color IS NOT NULL 
 ORDER BY Color ; 
+
+
+--Calculate teh percent of the total sale from each sales person out of the grand total sale
+/* create inner joins of tables Sales.SalesPerson, HumanResources.Employee and Person.Person
+and 
+use wingow aggregate function SUM and OVER(PARTITION BY ...) clause
+*/
+SELECT 
+	 SP.BusinessEntityID AS EmpID
+	, P.FirstName 
+	, P.LastName
+	, SUM(SalesYTD) OVER(PARTITION BY SP.BusinessEntityID) AS Sales
+	, SUM(SalesYTD) OVER() AS GrandTotal
+	, Round(SalesYTD *100 / (SUM(SalesYTD) OVER()),2) AS Percent_GrandTotal 
+FROM AdventureWorks2012.Sales.SalesPerson AS SP
+	INNER JOIN
+	AdventureWorks2012.HumanResources.Employee AS E
+	ON SP.BusinessEntityID = E.BusinessEntityID
+	INNER JOIN
+	AdventureWorks2012.Person.Person AS P
+	ON E.BusinessEntityID = P.BusinessEntityID 
+ORDER BY EmpID  ; 
+
+--****************************************************************************************************************
+
+SELECT 
+	 DISTINCT OrderQty 
+	 --, SalesOrderID AS OrderID
+	 --, UnitPrice
+	 --, UnitPrice*OrderQty AS SalesOrder
+	 , SUM(UnitPrice*OrderQty) OVER(PARTITION BY OrderQty) AS QtyTotal
+	 , ( SUM(UnitPrice*OrderQty) OVER(PARTITION BY OrderQty) * 100 ) 
+			/ (SUM(UnitPrice*OrderQty) OVER() ) AS Percent_GrandTotal 
+		-- calculate the percent of distinct OrderQty totals out of the grand total sales
+	 , SUM(UnitPrice*OrderQty) OVER() AS GrandTotal
+FROM AdventureWorks2012.Sales.SalesOrderDetail 
+ORDER BY Percent_GrandTotal DESC  ; 
+--41 rows returned
+/* the result is ordered the way allowing to find out what kind of orders(we are interested in OrderQty, 
+how many items were orderded) contrubuted the most to the grand total sales. 
+From the result of the query we see that the orders with one ordered item contributed 33.3% ),
+the top three contrubuters are orders with one item (33.3%), with two items (almost 13%) and orders with three items (12,5%)
+
+This is an example of usage window aggregate function SUM and OVER clause.
+*/
+
+--**************************************************************************************************************
+--This query will use UNBOUND PRECEDING to calculate the running total / cumulative total
+SELECT 
+	SP.TerritoryID
+	, SP.BusinessEntityID AS EmpID
+	, ( P.FirstName + ' ' + P.LastName ) AS SalesPersonName
+	, SP.SalesYTD AS Sales
+	, SUM(SalesYTD) 
+		OVER(PARTITION BY SP.TerritoryID
+			ORDER BY SalesYTD DESC
+			ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Running_Total
+
+FROM AdventureWorks2012.Sales.SalesPerson AS SP
+	INNER JOIN
+	AdventureWorks2012.HumanResources.Employee AS E
+	ON SP.BusinessEntityID = E.BusinessEntityID
+	INNER JOIN
+	AdventureWorks2012.Person.Person AS P
+	ON E.BusinessEntityID = P.BusinessEntityID  ; 
+-- 17 rows returned 
+/* we have the running total for each partition ( TerritoryID) wich include certain sales persons
+*/
+
+ SELECT 
+	TerritoryID
+	, SalesYTD AS Sales
+	, SUM(SalesYTD) OVER(PARTITION BY TerritoryID
+						 ORDER BY TerritoryID
+						 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Running_Total
+ FROM AdventureWorks2012.Sales.SalesPerson ; 
+ --17 rows returned, this is simplified version of the above query
+
+
+ --**********************************************************************************************
+ /*if we need to filter the result of the last query and return only the rows with the Running_Total > 2000000
+ it is necessary to use a common table expression (CTE) based on the previous query,
+ because window functions are allowed only in the SELECT and ORDER BY clauses.
+ The clauses FROM, WHERE, GROUP BY and HAVING are processed before SELECT and ORDER BY clauses.
+ So, to refer to the result of any window function we need to use a table expression
+ */
+ WITH RunningTotals AS -- create CTE (common table expression)
+ (
+	 SELECT 
+	TerritoryID
+	, SalesYTD AS Sales
+	, SUM(SalesYTD) OVER(PARTITION BY TerritoryID
+						 ORDER BY TerritoryID
+						 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Running_Total
+	FROM AdventureWorks2012.Sales.SalesPerson 
+	)
+SELECT *
+FROM RunningTotals
+WHERE Running_Total > 2000000 ; 
+--11 rows are retrieved
+
+
+
+--******************************************************************************************************

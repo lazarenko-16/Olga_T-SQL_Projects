@@ -37,7 +37,6 @@ WITH SalesTerritory
 	(TerritoryID, TerritoryName, TotalSales, NumCustomers )
 AS 
 (
- 
 	SELECT 
 	T.TerritoryID AS TerritoryID
 	, T.Name AS TerritoryName
@@ -52,13 +51,36 @@ GROUP BY
 	, T.Name
 )
 SELECT --* 
-TerritoryName
-, TotalSales
+	TerritoryName
+	, TotalSales
 FROM SalesTerritory 
 WHERE TotalSales > 3000000000
- --at CTE we can use where to filter aggregations, 
- --at the above query we have to use HAVING because of GROUP BY clause
+ --at CTE we can use WHERE clause at the above query we have to use HAVING because of GROUP BY clause
 ORDER BY TotalSales DESC ;
 
 
 --**************************************************************************************************
+-- retrieve phone numbers ( work, home, cell) of the employees 
+WITH EmployeePhoneNum	
+AS
+(
+	SELECT
+		P.BusinessEntityID AS EmpID
+		,( P.FirstName + ' ' + P.LastName ) AS EmpName
+		, Ph.PhoneNumber AS PhoneNumber
+		, PhT.Name AS PhoneNumType
+	FROM AdventureWorks2012.Person.Person AS P
+		LEFT JOIN 
+		AdventureWorks2012.Person.PersonPhone AS Ph
+		ON P.BusinessEntityID = Ph.BusinessEntityID
+		INNER JOIN 
+		AdventureWorks2012.Person.PhoneNumberType AS PhT
+		ON Ph.PhoneNumberTypeID = PhT.PhoneNumberTypeID
+)
+SELECT 
+	EmpName
+	, EmpID
+	, PhoneNumber
+FROM EmployeePhoneNum
+WHERE PhoneNumType LIKE 'Work' -- or it can be 'Cell', or 'Home' or any combination of them 
+ORDER BY EmpName ; 

@@ -84,3 +84,73 @@ SELECT
 FROM EmployeePhoneNum
 WHERE PhoneNumType LIKE 'Work' -- or it can be 'Cell', or 'Home' or any combination of them 
 ORDER BY EmpName ; 
+
+
+--****************************************************************************************************
+
+WITH Product_ListPrice
+AS
+(
+SELECT 
+	PH.ProductID
+	, P.Name AS ProductName
+	, P.Color AS Color 
+	, YEAR(PH.StartDate) AS Year
+	, PH.ListPrice 
+FROM AdventureWorks2012.Production.ProductListPriceHistory AS PH
+	INNER JOIN 
+	AdventureWorks2012.Production.Product AS P
+	ON PH.ProductID = P.ProductID  
+)
+SELECT * 
+FROM Product_ListPrice 
+WHERE YEAR = '2005'
+	AND Color = 'Multi' ; 
+
+--******************************************************************************************************
+-- retrieve product details for products with not null values for Color, Size, Class, Style
+-- UNION clause is used in CTE
+WITH Product_Details
+AS 
+(
+SELECT		
+	ProductID
+	, [Name] AS Product
+	, ListPrice
+	, StandardCost
+FROM AdventureWorks2012.Production.Product 
+WHERE Color IS NOT NULL 
+	UNION  
+SELECT		
+	ProductID
+	, [Name] AS Product
+	, ListPrice
+	, StandardCost
+FROM AdventureWorks2012.Production.Product 
+WHERE Size IS NOT NULL 
+	UNION 
+SELECT		
+	ProductID
+	, [Name] AS Product
+	, ListPrice
+	, StandardCost
+FROM AdventureWorks2012.Production.Product 
+WHERE Class IS NOT NULL  
+	UNION
+SELECT		
+	ProductID
+	, [Name] AS Product
+	, ListPrice
+	, StandardCost
+FROM AdventureWorks2012.Production.Product 
+WHERE Style IS NOT NULL 
+)
+SELECT *
+FROM Product_Details
+WHERE ListPrice > 100 ;  -- filter out the products with ListPrice <= 100
+-- 209 rows are returned ( the rows are distinct, no duplications in rows)
+
+
+--****************************************************************************************************
+
+

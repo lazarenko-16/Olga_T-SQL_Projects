@@ -337,3 +337,12 @@ FROM Purchasing.ProductVendor
 WHERE OnOrderQty IS NULL; 
 --returns 305 Products
 
+--*******************************************************
+
+SELECT 
+	AddressID
+	, AddressLine1
+	--, City
+	, PostalCode
+FROM AdventureWorks2012.Person.Address 
+WHERE City IN ('Santa Cruz', 'San Diego', 'Los Angeles') ; 

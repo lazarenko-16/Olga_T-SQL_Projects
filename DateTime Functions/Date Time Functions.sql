@@ -69,11 +69,43 @@ ORDER BY EmploymentYears desc;
 
 --****************************************************************
 -- Calculate how many days/weeks were nessessary to deliver the orders
-  SELECT SalesOrderID
+SELECT SalesOrderID
 	, OrderDate
 	, DueDate
 	, ShipDate
 	, DATEDIFF(dd,OrderDate, DueDate) AS TotalOrderDays
 	, DATEDIFF(dd, OrderDate,ShipDate) AS ShippingDays
 	, DATEDIFF(wk,OrderDate, ShipDate) AS ShippingWeeks
-  FROM AdventureWorks2012.Sales.SalesOrderHeader ;
+FROM AdventureWorks2012.Sales.SalesOrderHeader ;
+
+  --**********************************************************************
+
+  /* the query will return records with employee full name, employee ID , job title 
+  and calculated employee's age. DATEDIFF(datepart, startdate, enddate) function is used.
+  INNER JOIN is used for the tables HumanResourcse.Employee and Person.Person ; 
+  The records are organized by employee's name ; */
+  SELECT 
+	( P.FirstName + ' ' + P.LastName) AS EmployeeName
+	, E. BusinessEntityID AS EmpID
+	,JobTitle
+	, DATEDIFF(yy, BirthDate, GETDATE()) AS Age -- calculate the employee's age
+  FROM AdventureWorks2012.HumanResources.Employee AS E
+	INNER JOIN 
+		AdventureWorks2012.Person.Person AS P
+	ON E.BusinessEntityID = P.BusinessEntityID
+  ORDER BY EmployeeName ; 
+
+
+  /* the query will return records of employee older than 67 years old 
+  The above query will be modified */
+    SELECT 
+	( P.FirstName + ' ' + P.LastName) AS EmployeeName
+	, E. BusinessEntityID AS EmpID
+	,JobTitle
+	, DATEDIFF(yy, BirthDate, GETDATE()) AS Age -- calculate the employee's age
+  FROM AdventureWorks2012.HumanResources.Employee AS E
+	INNER JOIN 
+		AdventureWorks2012.Person.Person AS P
+	ON E.BusinessEntityID = P.BusinessEntityID
+  WHERE DATEDIFF(yy, BirthDate, GETDATE()) > 67 -- select only the records with calculated age>67 
+  ORDER BY EmployeeName ; 

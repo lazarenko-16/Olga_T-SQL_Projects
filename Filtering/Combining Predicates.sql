@@ -63,4 +63,29 @@ The parenthesis have the highest precedence
 rows with OrderQty > 20 for both years 2005 and 2006 will be selected 
 */
 
+--***************************************************************
+/* the query is supposed to return the names of the customers with 
+last name starts with A or K or P ; the records ordered by LastName in descending order 
+*/
+SELECT 
+	DISTINCT( LastName + ' ' + FirstName) AS FullName
+FROM AdventureWorks2012.Person.Person 
+WHERE LastName LIKE 'A%' OR LastName LIKE 'K%' OR LastName Like 'P%' 
+ORDER BY FullName DESC ; 
+
+
+/*the query returns the names of the customers with 
+last name starts with A or K or P  and these customers should 
+have the first name starts with M or J; 
+To retrieve the correct records the parentheses are used 
+to separate multiple predicates/conditions to obtain the desired result.
+The records are organized by the last name.
+*/
+SELECT 
+	DISTINCT( LastName + ' ' + FirstName) AS FullName
+FROM AdventureWorks2012.Person.Person 
+WHERE (LastName LIKE 'A%' OR LastName LIKE 'K%' OR LastName Like 'P%')
+	  AND 
+	  ( FirstName LIKE 'M%' OR FirstName LIKE 'J%')
+ORDER BY FullName  ; 
 

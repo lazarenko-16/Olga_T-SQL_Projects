@@ -120,3 +120,22 @@ WHERE SalesYTD = (SELECT MIN(SalesYTD)
 		FROM AdventureWorks2012.Sales.SalesTerritory ) 
 ORDER BY Sales ; 
 
+--*****************************************************************************
+/* the query will use the aggregation functions MIN(), MAX(), AVG() to retrieve 
+min, max and average vacation hours according job title/position */
+SELECT 
+	JobTitle
+	, MIN(VacationHours) AS Min_Vacation
+	, MAX(VacationHours) AS Max_Vacation
+	--, AVG(VacationHours) AS Avg_Vacation 
+FROM AdventureWorks2012.HumanResources.Employee 
+GROUP BY JobTitle ; 
+
+
+/* the query will use the aggregation function MAX() to get top 10 records with max SickLeaveHours */
+SELECT TOP(10)
+	JobTitle
+	, MAX(SickLeaveHours) AS Max_SickHours -- aggregation function MAX() is used 
+FROM AdventureWorks2012.HumanResources.Employee 
+GROUP BY JobTitle 
+ORDER BY Max_SickHours DESC ; --records will be ordered in descending way

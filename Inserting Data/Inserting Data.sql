@@ -48,6 +48,7 @@ VALUES
 VALUES 
  (DEFAULT, 202, 282, NULL, 200.00) ; 
 
+ GO 
 
 SELECT * FROM AdventureWorks2012.Sales.MyOrders ;
 /* using SELECT * is not a good practice, but here I use it only for ad hoc query to examine 
@@ -93,7 +94,7 @@ The procedure called sp_Sales.OrderYear wich accepts an order year and return th
 -- check if the procedure is already exists
 IF OBJECT_ID(N'sp_SalesOrderYear', N'P') IS NOT NULL
 	DROP PROCEDURE sp_SalesOrderYear ; 
-GO  
+GO ;
 --create the procedure
 CREATE PROCEDURE sp_SalesOrderYear
 	@TerritoryID INT
@@ -104,7 +105,7 @@ FROM AdventureWorks2012.Sales.SalesOrderHeader
 WHERE TerritoryID = @TerritoryID 
 	AND SalesPersonID IS NOT NULL 
 END ; 
-GO 
+GO ;
 
 EXECUTE  sp_SalesOrderYear  -- run the procedure sp_SalesOrderYear
 	@TerritoryID = 2
@@ -122,3 +123,64 @@ INSERT INTO AdventureWorks2012.Sales.MyOrders
 SET IDENTITY_INSERT AdventureWorks2012.Sales.MyOrders OFF; 
 
 SELECT * FROM AdventureWorks2012.Sales.MyOrders ; --800 rows returned (458 + 342)
+
+GO 
+
+
+--****************************************************************************************
+-- SELECT INTO statement at queries
+/* this statement creates the target table based on the definition of the source 
+	and inserts the result rows from the query into the table. 
+	Column names, types, nullability and IDENTITY property will be kept, 
+	but indexes, constraints, triggers, permissions are not copied. 
+
+	Because I was not able to find a table with IDENTITY property 
+	in AdventureWorks2012 database, I will create the table Sales.MyOrders2
+
+*/
+
+USE AdventureWorks2012 ; 
+GO 
+
+-- check if the table Sales.MyOrders2 already exists
+IF OBJECT_ID(N'Sales.MyOrders2', N'U') IS NOT NULL
+	DROP TABLE Sales.MyOrders2 ;  
+ 
+ CREATE TABLE AdventureWorks2012.Sales.MyOrders2
+(
+	SalesOrderID INT NOT NULL IDENTITY(1,1) -- the column has IDENTITY property with seed 1 and an increment 1
+	--this property will generate values in this column automatically when rows are inserted 
+		CONSTRAINT PK_MyOrders2_SalesOrderID PRIMARY KEY
+	, OrderDate DATE NOT NULL
+		CONSTRAINT DFT_MyOrders2_OrderDate DEFAULT (CAST(SYSDATETIME() AS DATE))
+	, CustomerID INT NOT NULL
+	, SalesPersonID INT NOT NULL
+	, TerritoryID INT NOT NULL
+	, SubTotal MONEY  NULL
+) ; 
+
+SELECT * FROM Sales.MyOrders2 ; 
+
+--populate the table with some data
+INSERT INTO AdventureWorks2012.Sales.MyOrders2
+( OrderDate, CustomerID, SalesPersonID, TerritoryID, SubTotal) 
+VALUES 
+('20150620',124, 276,4, 178.90), 
+(DEFAULT, 202, 282, 6, 307.38), --DEFAULT will generate today's date 2018-03-28
+(DEFAULT, 110, 280, 1, 55.0), 
+('20110917',155, 280, 1, 134.55); --4 rows 
+
+
+/* to check, if a column has IDENTITY property:
+	 SELECT COLUMNPROPERTY(OBJECT_ID('tbl_name'), 'column_name', 'IsIdentity')
+    if returens 1 the column has IDENTITY property
+*/
+SELECT COLUMNPROPERTY(OBJECT_ID('Sales.MyOrders2'), 'SalesOrderID', 'IsIdentity')
+-- returns 1, thus the column SalesOrderID had IDENTITY property
+
+SELECT COLUMNPROPERTY(OBJECT_ID('Sales.MyOrders2'), 'TerritoryID', 'IsIdentity')
+--returns 0, thus the column TerritoryID doesn't have IDENTITY property
+
+
+
+

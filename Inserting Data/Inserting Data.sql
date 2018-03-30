@@ -171,6 +171,9 @@ VALUES
 ('20110917',155, 280, 1, 134.55); --4 rows 
 
 
+
+--************************************************************************************
+
 /* to check, if a column has IDENTITY property:
 	 SELECT COLUMNPROPERTY(OBJECT_ID('tbl_name'), 'column_name', 'IsIdentity')
     if returens 1 the column has IDENTITY property
@@ -181,6 +184,83 @@ SELECT COLUMNPROPERTY(OBJECT_ID('Sales.MyOrders2'), 'SalesOrderID', 'IsIdentity'
 SELECT COLUMNPROPERTY(OBJECT_ID('Sales.MyOrders2'), 'TerritoryID', 'IsIdentity')
 --returns 0, thus the column TerritoryID doesn't have IDENTITY property
 
+--***************************************************************************************
 
 
+--copy the table Sales.MyOrder2 into the table Sales.MyOrdersCopy using SELECT INTO
+IF OBJECT_ID(N'Sales.MyOrdersCopy', N'U') IS NOT NULL
+	DROP TABLE Sales.MyOrdersCopy ; 
 
+
+SELECT SalesOrderID, OrderDate, CustomerID, SalesPersonID, TerritoryID, SubTotal
+INTO AdventureWorks2012.Sales.MyOrdersCopy
+FROM AdventureWorks2012.Sales.MyOrders2 ; 
+--4 rows affected
+
+SELECT * FROM AdventureWorks2012.Sales.MyOrdersCopy ; 
+
+--add primary key (for SalesOrderID column)
+ALTER TABLE AdventureWorks2012.Sales.MyOrdersCopy
+	ADD CONSTRAINT PK_MyOrdersCopy PRIMARY KEY(SalesOrderID) ; 
+
+
+/* the source column SalesOrderID(table Sales.MyOrders2) has an IDENTITY property, 
+	and the target column SalesOrderID (table Sales.MyOrdersCopy) is defined with an IDENTITY property as well.
+ To remove an IDENTITY property from the target column SalesOrderID it necessary to apply some manipualations;
+ for example SalesOrderID + 0 
+ After manipulations the target column will allow NULLs;
+  if it is needed to have the column NOT NULL, 
+  ISNULL(<experession>, <assigned value>) function will be used)
+
+  Currently the table Sales.MyOrdersCopy has columns:
+		SalesOrderID PK, not null  IDENTITY -> I will remove IDENTITY property and allow NULLs
+		OrderDate    date    not null       -> I will change data type to datetime 
+		SalesPersonID    not null
+		TerritoryID		 not null
+		SubTotal             null
+
+   I would like to copy the source table ( Sales.MyOrders2) to 
+   the target table Sales.MyOrdersCopy2 and  remove an IDENTITY property from the column SalesOrderID,
+   allow the column OrderDate except null values and became datetime data type 
+ */
+
+           
+
+SELECT 
+	ISNULL(SalesOrderID + 0, NULL) AS SalesOrderID  -- get rid of IDENTITY property
+	, ISNULL(CAST(OrderDate AS datetime), NULL) AS OrderDate      -- make the column NOT NULL
+	, SalesPersonID
+	, TerritoryID
+	, SubTotal 
+INTO AdventureWorks2012.Sales.MyOrdersCopy2
+FROM AdventureWorks2012.Sales.MyOrders2 ; 
+
+
+SELECT * FROM AdventureWorks2012.Sales.MyOrdersCopy2 ; -- 4 rows 
+
+
+/* table Sales.MyOrders2:
+	SalesOrderID	null   -> has been changed from NOT NULL to NULL 
+	OrderDate		datetime -> had been changed data type from date to datetime
+*/
+
+
+--to check of the column SalesOrderID has an IDENTITY property
+SELECT COLUMNPROPERTY(OBJECT_ID('Sales.MyOrdersCopy2'), 'SalesOrderID', 'IsIdentity')
+-- does not return 1, thus the column SalesOrderID doesn't have  IDENTITY property	
+-- actualy it returns NULL, because the column accepts NULL values.
+
+
+INSERT INTO AdventureWorks2012.Sales.MyOrdersCopy2
+	(SalesOrderID, OrderDate, SalesPersonID, TerritoryID, SubTotal)
+VALUES
+	(NULL, '20120101', 234, 5, 300.00) ; -- 1 row affected
+
+SELECT * FROM AdventureWorks2012.Sales.MyOrdersCopy2 ; -- 5 rows 
+/* the newly inserted value for SalesOrderID is NULL 
+  and OrderDate values are in for of datetime YYYY-MM-DD hh:mm:ss.nnn
+
+  I cannot make SalesOrderID as a primary key, because now this column accepts NULL values input
+ */     
+
+ --*************************************************************************************************

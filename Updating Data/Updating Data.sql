@@ -55,7 +55,7 @@ ALTER TABLE Sales.MyOrders
 ALTER TABLE Sales.MyOrderDetails
 	ADD CONSTRAINT PK_OrderDetails PRIMARY KEY(SalesOrderID, SalesOrderDetailID) ; 
 
-
+GO 
 --************************************************************************************************************
 --1)
 --use UPDATE statement to update the existing rows at the sample tables

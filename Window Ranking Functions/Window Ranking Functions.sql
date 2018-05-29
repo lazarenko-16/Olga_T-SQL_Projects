@@ -124,6 +124,9 @@ SELECT
 	, P.FirstName
 	, ROUND(EP.Rate, 0 ) AS Rate
 	, RANK() OVER(PARTITION BY DepartmentID ORDER BY Rate DESC) AS RateRank
+	/* RANK() function will create ranking for the pay rate,
+	the ranking might have gaps
+	*/
 	, DENSE_RANK() OVER(PARTITION BY DepartmentID ORDER BY Rate DESC) AS DenseRateRank
 	/* DENSE_RANK() function will create the sequential(without gaps) rating for the pay rate
 	*/

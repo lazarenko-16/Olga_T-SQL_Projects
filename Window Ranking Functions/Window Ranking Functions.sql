@@ -116,3 +116,21 @@ INNER JOIN HumanResources.EmployeeDepartmentHistory AS DH
 ON E.BusinessEntityID = DH.BusinessEntityID ; 
 
 
+--*******************************************************************************
+SELECT
+	DH.DepartmentID AS DepartmentID
+	, E.JobTitle
+	, LastName
+	, P.FirstName
+	, ROUND(EP.Rate, 0 ) AS Rate
+	, RANK() OVER(PARTITION BY DepartmentID ORDER BY Rate DESC) AS RateRank
+	, DENSE_RANK() OVER(PARTITION BY DepartmentID ORDER BY Rate DESC) AS DenseRateRank
+	/* DENSE_RANK() function will create the sequential(without gaps) rating for the pay rate
+	*/
+FROM Person.Person AS P
+INNER JOIN HumanResources.EmployeePayHistory AS EP
+ON	P.BusinessEntityID = EP.BusinessEntityID 
+INNER JOIN HumanResources.Employee AS E
+ON EP.BusinessEntityID = E.BusinessEntityID
+INNER JOIN HumanResources.EmployeeDepartmentHistory AS DH
+ON E.BusinessEntityID = DH.BusinessEntityID ;

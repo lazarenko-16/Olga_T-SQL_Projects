@@ -220,3 +220,19 @@ ORDER BY Gender, VacationRate  ;
 	, Quantity
   FROM Production.ProductInventory 
   WHERE LocationID = 50 ; 
+
+
+
+
+  --RANK(), DENSE_RANK(), NTILE() for the sales persons according the number of the stores they work with
+SELECT
+	SalesPersonID	
+	, COUNT(BusinessEntityID) AS Stores -- cound the stores ID to find the number of the stores
+	, RANK() OVER (ORDER BY COUNT(BusinessEntityID) DESC ) AS Ranking
+	, NTILE(4) OVER (ORDER BY COUNT(BusinessEntityID) DESC ) AS Rank_Tile 
+	--NTILE(4) function will divide the data into 4 parts and rank the each part
+FROM Sales.Store 
+GROUP BY SalesPersonID
+ORDER BY Stores DESC  ; 
+
+--**********************************************************************************

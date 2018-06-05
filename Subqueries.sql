@@ -41,7 +41,7 @@ WHERE BusinessEntityID IN
 FROM AdventureWorks2012.Production.Product ;
 
 
---#3. Subquery at SELECT clause line
+--#3. Subquery at the SELECT clause line
 
 SELECT TerritoryID
 	, Name AS 'TerritoryName'
@@ -54,6 +54,38 @@ FROM AdventureWorks2012.Sales.SalesTerritory ;
 
 
 --************************************************************************************************************
--
+-- subquery at the WHERE clause
+SELECT 
+	BusinessEntityID AS EmpID
+	, Rate
+	, PayFrequency
+FROM HumanResources.EmployeePayHistory 
+WHERE BusinessEntityID IN 
+		(SELECT BusinessEntityID
+		FROM HumanResources.Employee
+		WHERE JobTitle LIKE 'Marketing%' )
+		-- to retrieve only employees at marketing fields
+ORDER BY Rate DESC ;  
+
+--*************************************************************************************************
+-- Subquery at the HAVING clause: to retrieve the sales person ID, full name and the number of served stores 
+-- for the sales person with bonus >= 3000 
+
+
+SELECT 
+	SalesPersonID
+	,( P.LastName + N' ' + P.FirstName) AS SalesPersonName
+	, COUNT(S.BusinessEntityID) AS Stores
+FROM Sales.Store AS S
+  INNER JOIN 
+		Person.Person AS P
+		ON S.SalesPersonID = P.BusinessEntityID  
+GROUP BY S.SalesPersonID, ( P.LastName + N' ' + P.FirstName)  
+HAVING  SalesPersonID IN
+		( -- subquery will get the sales person ID with bonus >= 3000
+		SELECT BusinessEntityID AS SalesPersonID
+		FROM Sales.SalesPerson
+		WHERE Bonus >= 3000 
+		) ; 
 
  

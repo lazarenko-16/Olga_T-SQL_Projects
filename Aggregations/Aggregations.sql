@@ -139,3 +139,15 @@ SELECT TOP(10)
 FROM AdventureWorks2012.HumanResources.Employee 
 GROUP BY JobTitle 
 ORDER BY Max_SickHours DESC ; --records will be ordered in descending way
+
+
+-- we want to have the information how many stores each sales person works with
+-- organized in descending way 
+SELECT
+	SalesPersonID	
+	, COUNT(BusinessEntityID) AS Stores 
+	-- cound the stores ID to find the number of the stores
+FROM Sales.Store 
+GROUP BY SalesPersonID -- grouping by the sales person ID
+ORDER BY Stores DESC  ; 
+

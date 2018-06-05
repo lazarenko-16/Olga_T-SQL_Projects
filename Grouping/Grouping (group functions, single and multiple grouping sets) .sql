@@ -51,3 +51,31 @@ FROM AdventureWorks2012.Purchasing.PurchaseOrderHeader AS P
 	ON P.ShipMethodID = S.ShipMethodID 
 GROUP BY P.ShipMethodID, S.Name, Status -- this grouping set has multiple elements 
 ORDER BY P.ShipMethodID, Status 
+
+
+
+-- retrieve the sales person ID, name and number of the served stores, 
+-- for the sales person serving > 50 stores 
+SELECT 
+	SalesPersonID
+	,( P.LastName + N' ' + P.FirstName) AS SalesPersonName
+	, COUNT(S.BusinessEntityID) AS Stores
+FROM Sales.Store AS S
+	INNER JOIN 
+		Person.Person AS P
+		ON S.SalesPersonID = P.BusinessEntityID  
+GROUP BY S.SalesPersonID, ( P.LastName + N' ' + P.FirstName) 
+HAVING  COUNT(S.BusinessEntityID) > 50  -- filtering out the groups ;   
+
+
+SELECT 
+	SalesPersonID
+	,( P.LastName + N' ' + P.FirstName) AS SalesPersonName
+	, COUNT(S.BusinessEntityID) AS Stores
+FROM Sales.Store AS S
+INNER JOIN 
+	Person.Person AS P
+	ON S.SalesPersonID = P.BusinessEntityID
+WHERE ( P.LastName + N' ' + P.FirstName) >= ('M%')  
+GROUP BY S.SalesPersonID, ( P.LastName + N' ' + P.FirstName) ; 
+  

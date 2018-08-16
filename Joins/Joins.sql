@@ -575,3 +575,36 @@ FROM AdventureWorks2012.Person.StateProvince AS S
 GROUP BY S.CountryRegionCode, R.Name
 ORDER BY CountryCode ; 
 
+
+--*******************************************************************************
+USE AdventureWorks2014 ; 
+GO
+
+--Retrive data about the employees ( name, phone number, phone type)
+-- join the tables Person.Person and Person.PhoneNumber on the common field BusinessEntityID
+SELECT FirstName
+	, LastName
+	, PhoneNumber
+	, PhoneNumberTypeID 
+FROM Person.Person AS P
+INNER  JOIN 
+	Person.PersonPhone AS F
+	ON P.BusinessEntityID = F.BusinessEntityID 
+ORDER BY LastName; 
+-- 19972 rows retrieved
+
+-- to obtain also the phone types join the table Person.PhoneNumberType
+SELECT FirstName
+	, LastName
+	, PhoneNumber
+	, F.PhoneNumberTypeID 
+	, T.Name AS PhoneType
+FROM Person.Person AS P
+INNER  JOIN 
+	Person.PersonPhone AS F
+	ON P.BusinessEntityID = F.BusinessEntityID
+INNER JOIN 
+	Person.PhoneNumberType AS T
+	ON 
+	F.PhoneNumberTypeID = T.PhoneNumberTypeID
+ORDER BY LastName; 

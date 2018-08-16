@@ -154,3 +154,28 @@ WHERE ListPrice > 100 ;  -- filter out the products with ListPrice <= 100
 --****************************************************************************************************
 
 
+USE AdventureWorks2014 ; 
+GO
+
+-- select 3 products for each class with the highest StandardCost 
+  WITH CostByClass
+  AS
+  (
+  SELECT ROW_NUMBER() OVER (PARTITION BY Class ORDER BY StandardCost DESC) AS RowNum
+	, ProductID
+	, Class
+	, StandardCost 
+	, DaysToManufacture
+  
+  FROM Production.Product 
+  WHERE Class IS NOT NULL 
+  -- the column Class allows null values with we don't want to retrieve 
+  )
+  
+  SELECT RowNum
+	, ProductID
+	, Class
+	, StandardCost
+	, DaysToManufacture
+   FROM CostByClass
+   WHERE RowNum BETWEEN 1 AND 3 ; 

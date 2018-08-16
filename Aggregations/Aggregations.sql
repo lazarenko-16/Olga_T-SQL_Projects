@@ -150,4 +150,25 @@ SELECT
 FROM Sales.Store 
 GROUP BY SalesPersonID -- grouping by the sales person ID
 ORDER BY Stores DESC  ; 
+GO
 
+USE AdventureWorks2014 ; 
+GO
+
+
+--count the number of the credit cards used for purchases for each card type
+SELECT CardType
+	, COUNT(CreditCardID) AS CountCards
+FROM Sales.CreditCard
+GROUP BY CardType 
+ORDER BY CardType ;
+
+
+--count the number of the credit cards used for purchases for each card type 
+-- and the exp year
+SELECT CardType
+	, ExpYear
+	, COUNT(CreditCardID) AS CountCards
+FROM Sales.CreditCard
+GROUP BY CardType,  ExpYear 
+ORDER BY CardType,  ExpYear ; 

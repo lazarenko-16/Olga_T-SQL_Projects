@@ -532,3 +532,73 @@ ORDER BY
 	, Shelf DESC
 	, Bin ; 
 	--34 rows returned, some rows can be duplicated
+
+--*************************************************************************
+
+USE AdventureWorks2014 ; 
+GO 
+
+CREATE VIEW v_EmpDept -- I will work with this view ( joins three tables) and Window functions
+AS
+(
+SELECT  DH.DepartmentID AS DeptID
+	, D.[Name] AS DeptName
+	--, D.GroupName AS GroupName
+	, E.BusinessEntityID AS EmpID
+	, E.Gender AS Gender
+	, E.MaritalStatus AS MaritalStatus
+	--, E.HireDate
+	, E.VacationHours
+	, E.SickLeaveHours
+FROM HumanResources.Employee AS E
+INNER JOIN 
+	HumanResources.EmployeeDepartmentHistory AS DH
+	ON E.BusinessEntityID = DH.BusinessEntityID 
+INNER JOIN 
+	HumanResources.Department AS D
+	ON DH.DepartmentID = D.DepartmentID
+)
+; 
+GO 
+
+ALTER VIEW dbo.v_EmpDept
+AS
+(
+SELECT  DH.DepartmentID AS DeptID
+	, D.[Name] AS DeptName
+	--, D.GroupName AS GroupName
+	, E.BusinessEntityID AS EmpID
+	, E.Gender AS Gender
+	, E.MaritalStatus AS MaritalStatus
+	--, E.HireDate
+	, E.VacationHours
+	, E.SickLeaveHours
+FROM HumanResources.Employee AS E
+INNER JOIN 
+	HumanResources.EmployeeDepartmentHistory AS DH
+	ON E.BusinessEntityID = DH.BusinessEntityID 
+INNER JOIN 
+	HumanResources.Department AS D
+	ON DH.DepartmentID = D.DepartmentID
+WHERE DH.DepartmentID IN (1,2,3)
+)
+; 
+GO
+
+SELECT * FROM dbo.v_EmpDept 
+ORDER BY DeptID 
+; 
+
+
+SELECT DeptID
+	, DeptName 
+	, Gender
+	, COUNT(EmpID) AS NumOfEmp
+FROM dbo.v_EmpDept
+ 
+GROUP BY GROUPING SETS 
+	(
+		( DeptID,DeptName,  Gender)
+		, ()
+	)
+;

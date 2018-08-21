@@ -566,13 +566,17 @@ AS
 (
 SELECT  DH.DepartmentID AS DeptID
 	, D.[Name] AS DeptName
+	, S.[Name] AS [Shift]
 	--, D.GroupName AS GroupName
 	, E.BusinessEntityID AS EmpID
+	, E.JobTitle
 	, E.Gender AS Gender
 	, E.MaritalStatus AS MaritalStatus
 	--, E.HireDate
 	, E.VacationHours
 	, E.SickLeaveHours
+	, PH.Rate
+	, PH.PayFrequency
 FROM HumanResources.Employee AS E
 INNER JOIN 
 	HumanResources.EmployeeDepartmentHistory AS DH
@@ -580,7 +584,13 @@ INNER JOIN
 INNER JOIN 
 	HumanResources.Department AS D
 	ON DH.DepartmentID = D.DepartmentID
-WHERE DH.DepartmentID IN (1,2,3)
+INNER JOIN 
+	HumanResources.[Shift] AS S
+	ON DH.ShiftID = S.ShiftID
+INNER JOIN 
+	HumanResources.EmployeePayHistory AS PH
+	ON E.BusinessEntityID = PH.BusinessEntityID
+WHERE DH.DepartmentID IN (7,8,15)
 )
 ; 
 GO

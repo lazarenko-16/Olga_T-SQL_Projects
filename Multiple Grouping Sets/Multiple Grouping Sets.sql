@@ -675,12 +675,14 @@ FROM [AdventureWorks2014].[Sales].[vSalesPerson]
 GROUP BY GROUPING SETS 
 	(
 		(TerritoryGroup, TerritoryName)
-		--, (TerritoryGroup)
-		--, (TerritoryName)
-		--, ()
+		, (TerritoryGroup)
+		, (TerritoryName)
+		, ()
 		)
-ORDER BY TerritoryGroup DESC , TerritoryName 
+ORDER BY TerritoryGroup DESC , TerritoryName DESC
 ;
+
+
 
 SELECT TerritoryGroup
 	, TerritoryName

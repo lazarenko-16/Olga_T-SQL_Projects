@@ -612,3 +612,86 @@ GROUP BY GROUPING SETS
 		, ()
 	)
 ;
+
+--********************************************************************
+
+USE AdventureWorksDW2014 ; 
+GO 
+
+-- count the sales persons by TerritoryGroup, TerritoryName from Sales.vSalesPerson
+
+SELECT TerritoryGroup
+	, TerritoryName
+	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
+FROM [AdventureWorks2014].[Sales].[vSalesPerson] 
+GROUP BY GROUPING SETS 
+	(
+		(TerritoryGroup, TerritoryName)
+		--, (TerritoryGroup)
+		--, (TerritoryName)
+		--, ()
+		)
+HAVING TerritoryGroup NOT LIKE 'Pacific'
+ORDER BY TerritoryGroup DESC , TerritoryName 
+;
+--9 rows returned for TerritoryGroup NorthAmerica and Europe
+/* the columns TerritoryGroup and TerritoryName allow NULL values, 
+but there the query result doesn't include number of sales persons 
+for NULL values for these columns */
+
+-- to check if the data have NULLs in TerritoryGroup and TerritoryName
+SELECT BusinessEntityID
+	, TerritoryGroup
+	, TerritoryName
+FROM [AdventureWorks2014].[Sales].[vSalesPerson]
+WHERE  (TerritoryGroup IS NULL 
+	OR TerritoryName IS NULL )
+; -- 3 rows returned 
+
+SELECT TerritoryGroup
+	, TerritoryName
+	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
+FROM [AdventureWorks2014].[Sales].[vSalesPerson] 
+GROUP BY GROUPING SETS 
+	(
+		(TerritoryGroup, TerritoryName)
+		--, (TerritoryGroup)
+		--, (TerritoryName)
+		--, ()
+		)
+--HAVING TerritoryGroup NOT LIKE 'Pacific'     the filtering confition is not applyed 
+ORDER BY TerritoryGroup DESC , TerritoryName 
+; -- 11 rows returned including the number of sales persons for NULLs in TerritoryGroup and TerritoryName
+
+
+
+
+
+SELECT TerritoryGroup
+	, TerritoryName
+	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
+FROM [AdventureWorks2014].[Sales].[vSalesPerson]
+--WHERE TerritoryGroup NOT LIKE 'Pacific' -- the filtering condition 
+GROUP BY GROUPING SETS 
+	(
+		(TerritoryGroup, TerritoryName)
+		--, (TerritoryGroup)
+		--, (TerritoryName)
+		--, ()
+		)
+ORDER BY TerritoryGroup DESC , TerritoryName 
+;
+
+SELECT TerritoryGroup
+	, TerritoryName
+	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
+FROM [AdventureWorks2014].[Sales].[vSalesPerson]
+GROUP BY GROUPING SETS 
+	(
+		(TerritoryGroup, TerritoryName)
+		, (TerritoryGroup)
+		, (TerritoryName)
+		, ()
+		)
+ORDER BY TerritoryGroup DESC , TerritoryName DESC 
+;

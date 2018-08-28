@@ -747,4 +747,99 @@ GROUP BY GROUPING SETS
 		, ()
 		)
 ;
+GO
+--*************************************************************************************
+USE AdventureWorks2014 ; 
+GO
 
+/*calculate the subtotal and the grand total of all sales grouped by the countries and their provinces
+ROLLUP() function will be used */
+
+SELECT CountryRegionName AS Country
+	, StateProvinceName AS Province
+	, SUM(SalesYTD) AS Sales
+FROM AdventureWorks2014.Sales.vSalesPerson
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
+--ORDER BY Country, Province   
+-- if we use ORDER BY clause, it will be not very useful, 
+-- without ORDER BY we have the grand total as the last row of retrieved data
+;
+
+/* if substitute NULLs 
+(in these example the columns Country and Provice don't allow NULLs, 
+thus the NULLs in the result set represent the subtotals and the grand total)
+I will use GROUPING/ GROUPING_ID also can be used */
+SELECT CountryRegionName AS Country
+	, StateProvinceName AS Province
+	, SUM(SalesYTD) AS Sales
+	, GROUPING(CountryRegionName) AS gr_Country
+	, GROUPING(StateProvinceName) AS gr_Province
+FROM AdventureWorks2014.Sales.vSalesPerson
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
+;
+
+SELECT 
+	CASE
+		WHEN GROUPING(CountryRegionName) = 1 THEN 'Total for all counties'
+		ELSE CountryRegionName
+	END AS CountryRegionName
+	, 
+	CASE 
+		WHEN GROUPING(StateProvinceName) = 1 AND GROUPING(CountryRegionName) = 1 THEN 'Total for all provinves'
+		WHEN GROUPING(StateProvinceName) = 1 THEN 'Total for ' + CountryRegionName
+		ELSE StateProvinceName
+	END AS StateProvinceName
+	, SUM(SalesYTD) AS Sales
+	, GROUPING(CountryRegionName) AS gr_Country
+	, GROUPING(StateProvinceName) AS gr_Province
+FROM AdventureWorks2014.Sales.vSalesPerson
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
+;
+
+-- we the final view of the result set, 
+SELECT 
+	CASE
+		WHEN GROUPING(CountryRegionName) = 1 THEN 'Total for all countries'
+		WHEN GROUPING(CountryRegionName) = 0 AND GROUPING(StateProvinceName) = 1 THEN ' ' 
+		ELSE CountryRegionName
+	END AS Country
+	, 
+	CASE 
+		WHEN GROUPING(StateProvinceName) = 1 AND GROUPING(CountryRegionName) = 1 THEN 'Total for all provinves'
+		WHEN GROUPING(StateProvinceName) = 1 THEN 'Total for ' + CountryRegionName
+		ELSE StateProvinceName
+	END AS Province
+	, SUM(SalesYTD) AS Sales
+	--, GROUPING(CountryRegionName) AS gr_Country
+	--, GROUPING(StateProvinceName) AS gr_Province
+FROM AdventureWorks2014.Sales.vSalesPerson
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
+; -- 21 rows returned 
+
+
+SELECT CountryRegionName AS Country
+	, StateProvinceName AS Province
+	, SUM(SalesYTD) AS Sales
+	, GROUPING_ID(CountryRegionName, StateProvinceName) AS gr_ID
+FROM AdventureWorks2014.Sales.vSalesPerson
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
+;
+/* at this example gr_ID = 1 for the subtotals and gr_ID = 3 for the grand total */
+
+SELECT 
+	CASE 
+		WHEN GROUPING_ID(CountryRegionName) = 3 THEN 'Grand total for all countries'
+		WHEN GROUPING(CountryRegionName) = 0 AND GROUPING(StateProvinceName) = 1 THEN ' ' 
+		ELSE CountryRegionName
+	END AS Country 
+	,
+	CASE 
+		WHEN GROUPING_ID(StateProvinceName) = 1 AND GROUPING_ID(CountryRegionName) = 2 THEN 'Total for '+ CountryRegionName
+		WHEN GROUPING_ID(StateProvinceName) =1 THEN 'Total for  '+ CountryRegionName
+		ELSE StateProvinceName
+	END AS Provinced 
+	, SUM(SalesYTD) AS Sales
+	, GROUPING_ID(CountryRegionName, StateProvinceName) AS gr_ID
+FROM AdventureWorks2014.Sales.vSalesPerson
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
+; -- 21 rows returned 

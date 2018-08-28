@@ -684,16 +684,67 @@ ORDER BY TerritoryGroup DESC , TerritoryName DESC
 
 
 
-SELECT TerritoryGroup
-	, TerritoryName
+SELECT TerritoryGroup -- allows NULLs
+	, TerritoryName -- allows NULLS 
 	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
 FROM [AdventureWorks2014].[Sales].[vSalesPerson]
 GROUP BY GROUPING SETS 
 	(
 		(TerritoryGroup, TerritoryName)
-		, (TerritoryGroup)
-		, (TerritoryName)
+		--, (TerritoryGroup)
+		--, (TerritoryName)
 		, ()
 		)
-ORDER BY TerritoryGroup DESC , TerritoryName DESC 
+ORDER BY TerritoryGroup DESC , TerritoryName DESC ;
+ -- 12 rows returned
+/* in this case we cannot distinguish aggregations for the columns allowing NULLs and 
+the grand total ()
+*/
+
+
+-- use GROUPING and GROUPING_ID to distinguish aggregatios for the grouping sets and for the NULLs
+SELECT TerritoryGroup -- allows NULLs
+	, TerritoryName -- allows NULLS 
+	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
+	, GROUPING(TerritoryGroup) AS gr_TerGroup -- if 1 it is for NULLs, 0 for grouping sets
+	, GROUPING(TerritoryName) AS gr_TerName
+FROM [AdventureWorks2014].[Sales].[vSalesPerson]
+GROUP BY GROUPING SETS 
+	(
+		(TerritoryGroup, TerritoryName)
+		--, (TerritoryGroup)
+		--, (TerritoryName)
+		, ()
+		) 
+ORDER BY TerritoryGroup DESC , TerritoryName DESC ; 
+ -- from the result we see that the row 11 represents aggregation for the Null values
+-- and the row 12 is the grand total 
+
+
+
+--I want to put 'Grand Total' at the corresponding cell of the column TerritoryGroup
+SELECT 
+	CASE
+		WHEN GROUPING(TerritoryGroup)=1 THEN 'Grand Total'
+		ELSE ISNULL(TerritoryGroup, 'n/a ')-- if TerritoryGroup is NULL, 'Unknown' will be returned 
+	END AS TerritoryGroup
+	
+	, 
+	CASE 
+		WHEN GROUPING(TerritoryName) = 1 THEN 'Grand Total'
+		ELSE ISNULL(TerritoryName, 'n/a')
+	END AS TerritoryName
+
+	, COUNT(BusinessEntityID) AS NumberOfSalesPerson
+	, GROUPING(TerritoryGroup) AS gr_TerGroup -- if 1 it is for NULLs, 0 for grouping sets
+	, GROUPING(TerritoryName) AS gr_TerName
+FROM [AdventureWorks2014].[Sales].[vSalesPerson]
+GROUP BY GROUPING SETS 
+	(
+		(TerritoryGroup, TerritoryName)
+		--, (TerritoryGroup)
+		--, (TerritoryName)
+		, ()
+		)
 ;
+

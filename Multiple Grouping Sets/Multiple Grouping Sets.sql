@@ -828,18 +828,60 @@ GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
 
 SELECT 
 	CASE 
-		WHEN GROUPING_ID(CountryRegionName) = 3 THEN 'Grand total for all countries'
-		WHEN GROUPING(CountryRegionName) = 0 AND GROUPING(StateProvinceName) = 1 THEN ' ' 
+		WHEN GROUPING_ID(CountryRegionName,StateProvinceName) = 3 THEN ' Grand Total ' 
+		WHEN GROUPING_ID(CountryRegionName) = 0 AND GROUPING_ID(StateProvinceName) = 1 THEN 'Total for ' + CountryRegionName
 		ELSE CountryRegionName
 	END AS Country 
 	,
 	CASE 
 		WHEN GROUPING_ID(StateProvinceName) = 1 AND GROUPING_ID(CountryRegionName) = 2 THEN 'Total for '+ CountryRegionName
-		WHEN GROUPING_ID(StateProvinceName) =1 THEN 'Total for  '+ CountryRegionName
+		WHEN GROUPING_ID(StateProvinceName) =1 THEN ' '
 		ELSE StateProvinceName
-	END AS Provinced 
+	END AS Province 
 	, SUM(SalesYTD) AS Sales
 	, GROUPING_ID(CountryRegionName, StateProvinceName) AS gr_ID
 FROM AdventureWorks2014.Sales.vSalesPerson
 GROUP BY ROLLUP(CountryRegionName, StateProvinceName)
 ; -- 21 rows returned 
+GO
+--***********************************************************************************************
+
+SELECT CountryRegionName AS Country -- the column doesn't allow NULL values
+	, StateProvinceName AS Province -- the column doesn't allow NULL values
+	, City -- the column doesn't allow NULL values
+	, SUM(SalesYTD) AS Sales
+FROM AdventureWorks2014.Sales.vSalesPerson 
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName) 
+; 
+
+-- the grouping columns don't allow NULLs
+SELECT 
+	CASE
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 7 THEN 'Grand Total '
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 3 THEN 'Total for ' + CountryRegionName
+		
+		
+		ELSE CountryRegionName
+	END AS CountryRegionName 
+	, 
+	CASE	
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 3 THEN 'Total for all provinces of ' + CountryRegionName
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 7 THEN ' ' 
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 1 THEN ' ' 
+		ELSE StateProvinceName
+	END AS StateProvinceName
+	,
+	CASE 
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 1 THEN 'All cities of ' + StateProvinceName  
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 3 THEN 'All cities of ' + CountryRegionName
+		WHEN GROUPING_ID(CountryRegionName, StateProvinceName, City) = 7 THEN ' '  
+		 
+		ELSE City
+	END AS City
+		
+	, SUM(SalesYTD) AS Sales
+    , GROUPING_ID(CountryRegionName, StateProvinceName, City) AS gr_ID
+FROM AdventureWorks2014.Sales.vSalesPerson 
+GROUP BY ROLLUP(CountryRegionName, StateProvinceName, City) 
+;
+ 

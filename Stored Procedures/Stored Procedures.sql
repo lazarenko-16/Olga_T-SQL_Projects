@@ -149,3 +149,36 @@ ELSE PRINT 'Procedure does not  exists' ;
 GO
 
 --****************************************************************************************
+
+USE AdventureWorks2014 ; 
+GO 
+
+-- create a stored procedure to see the product inventory by the product category name and the location
+CREATE PROC spCurrentProjectInventory
+@LocationID AS smallint
+AS 
+BEGIN
+	SELECT
+		I.LocationID
+		, L.[Name] AS LocationName
+		, ProductID
+		, Shelf
+		, Bin
+		, Quantity 
+	FROM Production.ProductInventory AS I
+	INNER JOIN 
+		Production.Location AS L
+		ON I.LocationID = L.LocationID
+	WHERE I.LocationID = @LocationID
+END ; 
+
+-- to check if the procedure exists
+IF OBJECT_ID(N'spCurrentProjectInventory', N'P') IS NOT NULL
+PRINT 'the procesure spCurrentProjectInventory exists' ; 
+
+-- to see the procedure's text
+EXEC sp_helptext spCurrentProjectInventory ; 
+
+-- to call the procedure spCurrentProjectInventory
+-- LocationID can be from 1 to 7 and 10, 20 , 30... 60
+EXEC spCurrentProjectInventory 5 ; 

@@ -885,3 +885,54 @@ FROM AdventureWorks2014.Sales.vSalesPerson
 GROUP BY ROLLUP(CountryRegionName, StateProvinceName, City) 
 ;
  
+
+ -- use CUBE () for grouping 
+ SELECT CountryRegionName AS Country
+	, PhoneNumberType AS State
+	--, City
+	, COUNT(BusinessEntityID) AS CountCustomers
+ FROM AdventureWorks2014.Sales.vIndividualCustomer
+ GROUP BY CUBE(CountryRegionName,PhoneNumberType)
+ ; /*grouping will be done by all possible compinations of (CountryRegionName, PhoneNumberType):
+    by CountryRegionName and PhoneNumberType, 
+	by CountryRegionName,
+	by PhoneNumberType, 
+	by () grand total, all countries, all phone types
+	*/
+
+ SELECT CountryRegionName AS Country
+	, PhoneNumberType AS State
+	--, City
+	, COUNT(BusinessEntityID) AS CountCustomers
+	, GROUPING(CountryRegionName) AS gr_Country
+	, GROUPING(PhoneNumberType) AS gr_Phone
+	, GROUPING_ID(CountryRegionName, PhoneNumberType) AS gr_ID
+ FROM AdventureWorks2014.Sales.vIndividualCustomer
+ GROUP BY CUBE(CountryRegionName,PhoneNumberType)
+ ; 
+
+ SELECT 
+	CASE
+		WHEN GROUPING(CountryRegionName)=1
+			AND GROUPING(PhoneNumberType) = 0 THEN 'Total'
+		WHEN GROUPING(CountryRegionName)= 1
+			AND GROUPING(PhoneNumberType) = 1 THEN 'Grand Total'
+		ELSE CountryRegionName
+	END AS Country
+	
+	, 
+	CASE
+		
+	WHEN GROUPING(PhoneNumberType) = 1 
+		AND GROUPING(CountryRegionName) = 1 THEN ' ' 
+	WHEN GROUPING(PhoneNumberType) = 1 
+		AND GROUPING(CountryRegionName) = 0 THEN ' ' 
+	ELSE PhoneNumberType
+	END AS PhoneType
+	, COUNT(BusinessEntityID) AS CountCustomers
+	--, GROUPING(CountryRegionName) AS gr_Country
+	--, GROUPING(PhoneNumberType) AS gr_Phone
+	--, GROUPING_ID(CountryRegionName, PhoneNumberType) AS gr_ID
+ FROM AdventureWorks2014.Sales.vIndividualCustomer
+ GROUP BY CUBE(CountryRegionName,PhoneNumberType)
+ ; 

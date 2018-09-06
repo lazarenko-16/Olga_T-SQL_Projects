@@ -109,3 +109,132 @@ FROM AdventureWorks2012.Sales.SalesOrderHeader ;
 	ON E.BusinessEntityID = P.BusinessEntityID
   WHERE DATEDIFF(yy, BirthDate, GETDATE()) > 67 -- select only the records with calculated age>67 
   ORDER BY EmployeeName ; 
+
+  --*********************************************************************
+
+   USE AdventureWorks2014; 
+   GO 
+  --Current date and time
+  SELECT GETDATE() ; 
+  --returned the current date and time in DATETIME data type (YYYY-MM-DD HH:MM:SS [.nnn]), 
+  -- 2018-09-05 01:56:13.247
+
+  SELECT GETUTCDATE() ; 
+  -- 2018-09-05 01:56:13.247
+
+  SELECT CURRENT_TIMESTAMP ; 
+  --returned the current date and time in DATETIME data type (YYYY-MM-DD HH:MM:SS [.nnn]),
+  -- 2018-09-05 01:56:13.247 ;  it is the standard option 
+  
+  SELECT SYSDATETIME() ;  
+  --returned the current date and time in DATETIME data type (YYYY-MM-DD HH:MM:SS [.nnnnnnn]),
+  -- with more seconds precision
+  --2018-09-05 01:55:51.4948449
+
+  SELECT SYSUTCDATETIME() ; 
+  --2018-09-05 08:59:00.6983855
+  --UTC returns teh current date and time in UTC terms 
+  -- DATETIME data type
+
+
+  SELECT SYSDATETIMEOFFSET() ;  
+  -- the same as the result from SYSDATETIME but inculding the time zone offset
+  --2018-09-05 01:54:44.9009682 -07:00
+
+  --*******************************************************
+
+  --Date and Time Parts
+  SELECT DATEPART(year, '20020115') AS my_year ;
+  --returned 2002
+  
+  SELECT DATEPART(month, '20020125') AS my_mounth ; 
+   --returned 1 
+
+   SELECT DATEPART(day, '20020125') AS my_day ; 
+   --returned 25
+
+   --the same results can be obtained with YEAR, MONTH, DAY at DATEPART 
+   SELECT YEAR('20020329') AS my_year ; 
+   SELECT MONTH('20020329') AS my_mounth ; 
+   SELECT DAY('20020329') AS my_day ; 
+   --retured numeric values for the year, the month and the day
+
+   -- to get the name of the date part 
+   SELECT DATENAME(month, '20020329'); -- the function is language-dependable
+   --returned 'March'
+   SELECT DATENAME(day, '20020329') ; 
+   -- returned 29 ???
+
+
+   --calculate how many products the company started to sell by year and mounth
+   SELECT 
+	YEAR(SellStartDate) AS YearStartDate
+	, MONTH(SellStartDate) AS MonthStartDate
+	, DATENAME(month,SellStartDate) AS MonthName 
+	, COUNT(ProductID) AS NumOfProducts
+   FROM AdventureWorks2014.Production.Product 
+   GROUP BY YEAR(SellStartDate), MONTH(SellStartDate)
+			, DATENAME(month,SellStartDate)
+   ORDER BY YearStartDate , MonthStartDate 
+   ; 
+
+
+
+   --show the sales for which products are not over SellEndDate IS NULL
+   -- display the date these products' sales are started 
+   SELECT ProductID
+	--, SellStartDate
+	, CAST(SellStartDate AS DATE) SellStart
+	, YEAR(SellStartDate) AS YearStart
+	, MONTH(SellStartDate) AS MonthStart
+	, DATENAME(month, SellStartDate) AS MonthName 
+   FROM AdventureWorks2014.Production.Product 
+   WHERE SellEndDate IS NULL 
+   ; 
+   --406 rows are returned 
+
+   --show the sales for which products are over SellEndDate IS NOT NULL 
+      SELECT ProductID
+	--, SellStartDate
+	, CAST(SellStartDate AS DATE) SellStart
+	, YEAR(SellStartDate) AS YearStart
+	, MONTH(SellStartDate) AS MonthStart
+	, DATENAME(month, SellStartDate) AS MonthName 
+   FROM AdventureWorks2014.Production.Product 
+   WHERE SellEndDate IS NOT  NULL 
+   ;
+   --98 rows returned 
+
+   SELECT ProductID
+   FROM AdventureWorks2014.Production.Product ; 
+   -- 504 rows returned , 406/sales + 98/sales are over = 504 
+
+   SELECT 
+	COUNT(ProductID) AS NumOfProducts_SaleEnd
+	, YEAR(SellStartDate) AS YearStart
+	, YEAR(SellEndDate) AS YearEnd
+	, MONTH(SellStartDate) AS MonthStart
+	, MONTH(SellEndDate) AS MounthEnd
+	, DATENAME(month, SellStartDate) AS MonthName 
+   FROM AdventureWorks2014.Production.Product 
+   WHERE SellEndDate IS NOT  NULL 
+   GROUP BY YEAR(SellStartDate)
+			, YEAR(SellEndDate)
+			, MONTH(SellStartDate)
+			, MONTH(SellEndDate)  
+			;
+   --2 rows returned 
+
+   SELECT 
+	COUNT(ProductID) AS NumOfProducts_SaleNow
+	, YEAR(SellStartDate) AS YearStart
+	, MONTH(SellStartDate) AS MonthStart
+	, DATENAME(month, SellStartDate) AS MonthName 
+   FROM AdventureWorks2014.Production.Product 
+   WHERE SellEndDate IS NULL 
+   GROUP BY YEAR(SellStartDate)
+			, MONTH(SellStartDate) 
+			, DATENAME(month, SellStartDate) 
+			; 
+			--4 rows returned 
+

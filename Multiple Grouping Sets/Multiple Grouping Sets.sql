@@ -911,6 +911,8 @@ GROUP BY ROLLUP(CountryRegionName, StateProvinceName, City)
  GROUP BY CUBE(CountryRegionName,PhoneNumberType)
  ; 
 
+
+-- the grouping columns don't allow NULLs
  SELECT 
 	CASE
 		WHEN GROUPING(CountryRegionName)=1
@@ -922,12 +924,11 @@ GROUP BY ROLLUP(CountryRegionName, StateProvinceName, City)
 	
 	, 
 	CASE
-		
-	WHEN GROUPING(PhoneNumberType) = 1 
-		AND GROUPING(CountryRegionName) = 1 THEN ' ' 
-	WHEN GROUPING(PhoneNumberType) = 1 
-		AND GROUPING(CountryRegionName) = 0 THEN ' ' 
-	ELSE PhoneNumberType
+		WHEN GROUPING(PhoneNumberType) = 1 
+			AND GROUPING(CountryRegionName) = 1 THEN ' ' 
+		WHEN GROUPING(PhoneNumberType) = 1 
+			AND GROUPING(CountryRegionName) = 0 THEN ' ' 
+		ELSE PhoneNumberType
 	END AS PhoneType
 	, COUNT(BusinessEntityID) AS CountCustomers
 	--, GROUPING(CountryRegionName) AS gr_Country
@@ -936,3 +937,51 @@ GROUP BY ROLLUP(CountryRegionName, StateProvinceName, City)
  FROM AdventureWorks2014.Sales.vIndividualCustomer
  GROUP BY CUBE(CountryRegionName,PhoneNumberType)
  ; 
+ GO
+
+ --**************************************************************************
+ SELECT [Group] AS CountryGroup
+	, CountryRegionCode AS CountryName
+	, [Name] AS Region 
+	-- all these columns dont't allow NULLs 
+	, SUM(SalesYTD ) AS Sales
+	, GROUPING_ID([Group], CountryRegionCode, [Name]) AS gr_ID
+	-- for all rows, exsept the row with the Grand Total, gr_ID = 0
+	-- for the grand total row gr_ID = 7 , 1*(2^2)+1*(2^1)+1*(2^0) = 4+2+1= 7
+ FROM AdventureWorks2014.Sales.SalesTerritory 
+ GROUP BY GROUPING SETS
+	(
+		([Group], CountryRegionCode, [Name])
+		, () -- grand total
+	)
+	;
+ 
+ -- the final version 
+  SELECT 
+	CASE
+		WHEN GROUPING_ID([Group], CountryRegionCode, [Name]) = 7 THEN 'Grand Total '
+		ELSE [Group]
+	END AS CountryGrouip
+	, 
+	CASE 
+		WHEN  GROUPING_ID([Group], CountryRegionCode, [Name]) = 7 THEN ' ' 
+		ELSE CountryRegionCode
+	END AS CountryCode
+	, 
+	CASE 
+		WHEN  GROUPING_ID([Group], CountryRegionCode, [Name]) = 7 THEN ' ' 
+		ELSE [Name]
+	END AS Region 
+	-- all these columns dont't allow NULLs 
+	, SUM(SalesYTD ) AS Sales
+	, GROUPING_ID([Group], CountryRegionCode, [Name]) AS gr_ID
+	-- for all rows, exsept the row with the Grand Total, gr_ID = 0
+	-- for the grand total row gr_ID = 7 , 1*(2^2)+1*(2^1)+1*(2^0) = 4+2+1= 7
+ FROM AdventureWorks2014.Sales.SalesTerritory 
+ GROUP BY GROUPING SETS
+	(
+		([Group], CountryRegionCode, [Name])
+		, () -- grand total
+	)
+	;
+

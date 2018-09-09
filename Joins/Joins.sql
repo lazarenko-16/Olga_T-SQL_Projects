@@ -608,3 +608,85 @@ INNER JOIN
 	ON 
 	F.PhoneNumberTypeID = T.PhoneNumberTypeID
 ORDER BY LastName; 
+
+--***************************************************************************
+
+USE AdventureWorks2014 ; 
+GO 
+
+--the query will retrieve the employees names and the job title, birth date, marital status, email address
+-- innte join for three tables Person.Person and HumanResources.Department
+
+SELECT
+	E.BusinessEntityID AS EmpID
+	, P.FirstName AS FirstName
+	, P.LastName
+	, JobTitle
+	, BirthDate
+	, MaritalStatus	
+FROM AdventureWorks2014.HumanResources.Employee AS E
+INNER JOIN 
+	AdventureWorks2014.Person.Person AS P
+	ON P.BusinessEntityID = E.BusinessEntityID ; 
+	-- 290 rows are returned 
+
+-- use WHERE clause 
+SELECT
+	E.BusinessEntityID AS EmpID
+	, P.FirstName AS FirstName
+	, P.LastName
+	, JobTitle
+	, BirthDate
+	, MaritalStatus	
+FROM AdventureWorks2014.HumanResources.Employee AS E
+INNER JOIN 
+	AdventureWorks2014.Person.Person AS P
+	ON P.BusinessEntityID = E.BusinessEntityID
+WHERE MaritalStatus = N'M' ; 
+--146 rows returned ; 
+
+SET STATISTICS IO ON ;
+SET STATISTICS TIME ON ; 
+SELECT
+	E.BusinessEntityID AS EmpID
+	, P.FirstName AS FirstName
+	, P.LastName
+	, JobTitle
+	, BirthDate
+	, MaritalStatus	
+FROM AdventureWorks2014.HumanResources.Employee AS E
+INNER JOIN 
+	AdventureWorks2014.Person.Person AS P
+	ON P.BusinessEntityID = E.BusinessEntityID -- matching 
+WHERE MaritalStatus = N'M' ;      -- filtering 
+--from the execution plan: Clustered Index Seek (Clustered). Person tbl , Cost = 95%
+
+SELECT
+	E.BusinessEntityID AS EmpID
+	, P.FirstName AS FirstName
+	, P.LastName
+	, JobTitle
+	, BirthDate
+	, MaritalStatus	
+FROM AdventureWorks2014.HumanResources.Employee AS E
+INNER JOIN 
+	AdventureWorks2014.Person.Person AS P
+	ON P.BusinessEntityID = E.BusinessEntityID
+	AND MaritalStatus = N'M' ;  
+	--because the join is INNER JOIN, this querey can be used without WHERE clause
+	-- and gives the same result
+	-- 146 rows returned 
+
+	
+	-- to retrived the information about the customers and orders
+	-- INNER JOIN (for customers who placed orders), LEFT JOIN ( for customers with and without orders)
+	SELECT 
+		C.CustomerID AS CustomerID
+		, S.SalesOrderID AS OrderID
+		, S.OrderDate
+	FROM AdventureWorks2014.Sales.Customer AS C
+	INNER JOIN 
+		AdventureWorks2014.Sales.SalesOrderHeader AS S
+		ON C.CustomerID = S.CustomerID ; 
+		--31465 rows returned 
+

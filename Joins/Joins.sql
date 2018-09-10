@@ -690,3 +690,81 @@ INNER JOIN
 		ON C.CustomerID = S.CustomerID ; 
 		--31465 rows returned 
 
+
+	SELECT *
+	FROM AdventureWorks2014.Person.Person ;
+	--19972 rows returned 
+	
+	SELECT * 
+	FROM AdventureWorks2014.HumanResources.Employee ; 
+	-- 290 rows returned 
+
+	--select persons which are the employees
+	SELECT
+		E.BusinessEntityID AS EmpID
+		, P.FirstName
+		, P.LastName
+		, E.JobTitle
+	FROM AdventureWorks2014.Person.Person AS P
+		INNER JOIN 
+		AdventureWorks2014.HumanResources.Employee AS E
+		ON E.BusinessEntityID = P.BusinessEntityID ; 
+		--290 rows returned 
+
+
+		SELECT 
+		P.BusinessEntityID AS PersonID
+		, P.FirstName 
+		, P.LastName 
+		, E.JobTitle
+		, E.BirthDate
+		, E.Gender 
+	FROM AdventureWorks2014.Person.Person AS P
+		LEFT JOIN 
+		AdventureWorks2014.HumanResources.Employee AS E
+		ON P.BusinessEntityID = E.BusinessEntityID 
+		; -- 19972 rows returned ( matched and not matched with the table Employee
+	
+	SELECT 
+		P.BusinessEntityID AS PersonID
+		, P.FirstName 
+		, P.LastName 
+		, E.JobTitle
+		, E.BirthDate
+		, E.Gender 
+	FROM AdventureWorks2014.Person.Person AS P
+		LEFT JOIN 
+		AdventureWorks2014.HumanResources.Employee AS E
+		ON P.BusinessEntityID = E.BusinessEntityID -- matching 
+		WHERE E.Gender = N'F' -- filtering, select only females
+		; -- 84 rows returned 
+
+		SELECT 
+		P.BusinessEntityID AS PersonID
+		, P.FirstName 
+		, P.LastName 
+		, E.JobTitle
+		, E.BirthDate
+		, E.Gender 
+	FROM AdventureWorks2014.Person.Person AS P
+		 LEFT OUTER JOIN 
+		AdventureWorks2014.HumanResources.Employee AS E
+		ON P.BusinessEntityID = E.BusinessEntityID --matching, but not final 
+		AND E.Gender = N'F' -- filtering 
+		; --19972 rows returned 
+		/* for outer joins (left, right) without WHERE clause( plays the final filtering)
+		the rows for male persons will be also returned */
+
+		-- to obtain the correct result, it is needed to use WHERE clause
+		SELECT 
+		P.BusinessEntityID AS PersonID
+		, P.FirstName 
+		, P.LastName 
+		, E.JobTitle
+		, E.BirthDate
+		, E.Gender 
+	FROM AdventureWorks2014.Person.Person AS P
+		LEFT OUTER JOIN 
+		AdventureWorks2014.HumanResources.Employee AS E
+		ON P.BusinessEntityID = E.BusinessEntityID 
+		WHERE E.Gender = N'F'; -- 84 rows retured 

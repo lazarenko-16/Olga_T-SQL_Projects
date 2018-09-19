@@ -264,3 +264,200 @@ SELECT * FROM AdventureWorks2012.Sales.MyOrdersCopy2 ; -- 5 rows
  */     
 
  --*************************************************************************************************
+ /* Inserting data 
+	1) INSERT VALUES
+	2) INSERT SELECT
+	3) INSERT EXEC
+	4) SELECT INTO 
+ */
+
+ USE AdventureWorks2014 ; 
+ GO
+
+
+ -- create the table first Person.NewSalesPerson
+
+ IF OBJECT_ID(N'AdventureWorks2014.Sales.NewSalesPerson', N'U') IS NOT NULL
+	DROP TABLE Sales.NewSalesPerson
+ ELSE 
+	PRINT 'the table Sales.NewSalesPerson does not exist' ;
+
+
+
+ CREATE TABLE AdventureWorks2014.Person.NewSalesPerson
+ (
+ PersonID INT NOT NULL IDENTITY(1,1)
+ , FirstName NVARCHAR(20) NOT NULL
+ , LastName NVARCHAR(40) NOT NULL
+ , BirthDate DATE NULL
+ , Gender NVARCHAR(1) NULL
+ )
+ 
+ SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ; --the table contains no data now
+
+  -- 1)******** INSERT INTO statement ******************************************
+  INSERT INTO AdventureWorks2014.Person.NewSalesPerson
+  (FirstName, LastName, BirthDate, Gender)
+  VALUES
+  ('Rosa', 'Lopez', '1990/02/15', 'F'), 
+  ('Eric', 'Hanzen', '1986/07/01', 'M') ; 
+
+  SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ;
+  -- 2 rows are inserted, IDENTITY property for the column PersonID generated the values 
+  
+  INSERT INTO AdventureWorks2014.Person.NewSalesPerson
+  (PersonID, LastName, FirstName, BirthDate, Gender)
+  VALUES
+  (3, 'Roberto', 'Mendez', '1977/10/16', 'M') ; 
+  -- fails, becaues IDENTITY property on the column PersonID should generate a value and 
+  -- thus prevents values to be inserted in the column PersonID
+  
+  SET IDENTITY_INSERT AdventureWorks2014.Person.NewSalesPerson ON ; 
+    INSERT INTO AdventureWorks2014.Person.NewSalesPerson
+  (PersonID, LastName, FirstName, BirthDate, Gender)
+  VALUES
+  (3, 'Roberto', 'Mendez', '1977/10/16', 'M') ;
+  -- 1 row affected (inserted) 
+
+   SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ; 
+   -- 3 rows returned
+
+   INSERT INTO AdventureWorks2014.Person.NewSalesPerson
+   (PersonID, FirstName, LastName) -- BirthDate, Gender columns are not mentioned
+   VALUES 
+   (4, 'Liza', 'Smith') ; --NULLs for BirthDate  and Gender column
+   --1 row affected 
+
+  SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ; 
+  -- 4 rows are returned, Liza Smith, PersonID = 4 has NULLs in BirthDate and Gender columns.
+
+  SET IDENTITY_INSERT AdventureWorks2014.Person.NewSalesPerson OFF ; 
+  -- to prevent inserting values for PersonID column, the values will be automatically generated
+  
+  --2)********* INSERT SELECT statement ***************************
+
+
+ SELECT P.BusinessEntityID -- this query result will be used in the SELECT clause of INSERT SELECT 
+	, P.FirstName
+	, P.LastName
+	, E.BirthDate
+	, E.Gender
+FROM 
+( 
+  AdventureWorks2014.Person.Person AS P
+	INNER JOIN 
+	AdventureWorks2014.HumanResources.Employee AS E
+	ON P.BusinessEntityID = E.BusinessEntityID 
+	)
+ WHERE P.BusinessEntityID IN 
+  (
+  SELECT BusinessEntityID 
+  FROM AdventureWorks2014.Sales.SalesPerson
+  ) ; -- 17 rows retrieved 
+
+
+ INSERT INTO AdventureWorks2014.Person. NewSalesPerson
+  (PersonID, FirstName, LastName, BirthDate, Gender)
+ SELECT P.BusinessEntityID -- this query result will be used in the SELECT clause of INSERT SELECT 
+	, P.FirstName
+	, P.LastName
+	, E.BirthDate
+	, E.Gender
+FROM 
+( 
+  AdventureWorks2014.Person.Person AS P
+	INNER JOIN 
+	AdventureWorks2014.HumanResources.Employee AS E
+	ON P.BusinessEntityID = E.BusinessEntityID 
+	)
+ WHERE P.BusinessEntityID IN 
+  (
+  SELECT BusinessEntityID 
+  FROM AdventureWorks2014.Sales.SalesPerson
+  ) ;
+
+  SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ; 
+ -- 21 rows returend ( 4 initial rows + 17 rows from the subquery) 
+
+   SET IDENTITY_INSERT AdventureWorks2014.Person.NewSalesPerson OFF ; 
+  -- to prevent inserting values for PersonID column, the values will be automatically generated
+  GO
+
+ --3) ************ INSERT EXEC statement ****************************
+ -- create the procedure Sales.sp_SalesPersonByGender 
+ -- check if the procedure is already exists
+ IF OBJECT_ID ( N'Sales.sp_SalesPersonByGender', N'SP') IS NOT NULL
+	DROP PROCEDURE Sales.Sp_SalesPersonByGender
+ ELSE 
+	PRINT 'the procedure Sales.Sp_SalesPersonByGender does not exist ' ;
+ GO 
+
+ CREATE PROC Sales.sp_SalesPersonByGender 
+	@gender NCHAR 
+ AS 
+  SELECT P.BusinessEntityID  
+	, P.FirstName
+	, P.LastName
+	, E.BirthDate
+	, E.Gender
+FROM 
+( 
+  AdventureWorks2014.Person.Person AS P
+	INNER JOIN 
+	AdventureWorks2014.HumanResources.Employee AS E
+	ON P.BusinessEntityID = E.BusinessEntityID 
+	)
+ WHERE P.BusinessEntityID IN 
+  (
+  SELECT BusinessEntityID 
+  FROM AdventureWorks2014.Sales.SalesPerson
+  )
+   AND E.Gender = @gender ; 
+
+   -- execute the procedure, retrieve the female sales persons
+   EXEC Sales.sp_SalesPersonByGender 
+        @gender = 'F'; -- 7 rows returned 
+
+   -- execute the procedure, retrieve the male sales persons
+    EXEC Sales.sp_SalesPersonByGender 
+        @gender = 'M' ; -- 10 rows returned 
+
+
+   -- check the table Person.NewSalesPerson
+   SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ; 
+   --21 rows 
+   DELETE  FROM AdventureWorks2014.Person.NewSalesPerson 
+   WHERE PersonID > 4 ; 
+
+   SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ; 
+   -- currently has 4 rows with PersonID from 1 to 4 
+
+   SET IDENTITY_INSERT AdventureWorks2014.Person.NewSalesPerson  ON ; 
+   
+   -- put together INSERT  and the procedure
+   INSERT INTO AdventureWorks2014.Person.NewSalesPerson 
+   (PersonID, FirstName, LastName, BirthDate, Gender) 
+   EXEC Sales.sp_SalesPersonByGender 
+        @gender = 'F'; 
+
+	SELECT * FROM AdventureWorks2014.Person.NewSalesPerson ;
+	-- 11 rows returned, the initial 4 rows + 7 rows from INSERT EXEC 
+
+	SET IDENTITY_INSERT AdventureWorks2014.Person.NewSalesPerson OFF ; 
+
+
+   DELETE  FROM AdventureWorks2014.Person.NewSalesPerson 
+   WHERE PersonID > 4 ; 
+
+   --4) *************** SELECT INTO statemnt ******************
+  
+
+   SELECT  * 
+   INTO AdventureWorks2014.Person.NewSalesPerson2 -- this table will be created now 
+   FROM AdventureWorks2014.Person.NewSalesPerson
+   WHERE PersonID in (1,2) ; 
+   -- 2 rows affected
+
+   SELECT * FROM AdventureWorks2014.Person.NewSalesPerson2 ; 
+	-- 2 rows returned 
+

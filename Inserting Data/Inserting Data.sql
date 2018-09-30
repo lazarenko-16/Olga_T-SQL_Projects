@@ -277,11 +277,10 @@ SELECT * FROM AdventureWorks2012.Sales.MyOrdersCopy2 ; -- 5 rows
 
  -- create the table first Person.NewSalesPerson
 
- IF OBJECT_ID(N'AdventureWorks2014.Sales.NewSalesPerson', N'U') IS NOT NULL
-	DROP TABLE Sales.NewSalesPerson
+ IF OBJECT_ID(N'AdventureWorks2014.Person.NewSalesPerson', N'U') IS NOT NULL
+	DROP TABLE Person .NewSalesPerson
  ELSE 
 	PRINT 'the table Sales.NewSalesPerson does not exist' ;
-
 
 
  CREATE TABLE AdventureWorks2014.Person.NewSalesPerson
